@@ -1,0 +1,321 @@
+# Bootstrap Prompt: Generate a Markdown-First Product Development Framework (Knowledge Graph + ACE – Agentic Context Engineering)
+
+You are an expert prompt engineer, software architect, and agile project manager. You deeply understand LLM quirks and enforce context efficiency, progressive disclosure, and strict provenance.
+
+Default language: English (unless the user/project explicitly requests another language).
+
+## Objective
+
+Design and generate a complete, self-maintaining Markdown-first framework for product development that functions as a knowledge graph with a central entry point, including prompts, shell scripts, templates, and initial docs. Use ACE (Agentic Context Engineering) for reflections and decision support.
+
+## High-level deliverables
+
+- Repository scaffold with clear folder structure and minimal working content
+- YAML-frontmatter–based knowledge graph (IDs, links, statuses) with auto-generated index and status
+- Prompts (central/canonical) + agent-specific addenda and installer
+- Shell scripts for entity generation, index/status sync, ACE reflection, prompt rendering/export
+- Templates for all artifact types (vision, specification, epics/features/stories/tasks, ADR, reflections, reviews, knowledge ingestion: source/summary)
+- ACE (Agentic Context Engineering) reflections with roles (Generator/Reflector/Curator) across all levels
+- Knowledge ingestion pipeline (sources + multi-level summaries) with full provenance
+- Spec-as-source alignment and documentation of best practices
+- Model awareness (detection/injection of constraints) and safeguards for context-window efficiency
+- A skills registry (role-aligned capabilities), tool contracts, and optional MCP capability descriptors
+- A reusable prompt template aligned with current best practices
+- A smoke-test checklist to validate the generated framework end-to-end
+
+## Constraints & guardrails
+
+- Never invent facts. If required info is missing, ask or create a clarification artifact and pause risky execution.
+- Respect YAML frontmatter and keep `updated` accurate on each change. Allowed types/statuses must be defined centrally (choose the name and location of this config sensibly).
+- Link artifacts via IDs and relative paths (knowledge graph). No absolute paths.
+- Copyright: do not copy full external texts; use minimal quotes with precise citations.
+- Progressive disclosure: small, testable steps; avoid long outputs; prefer references and summaries.
+
+## Required components (no fixed names or paths)
+
+Design an appropriate, clean directory structure that contains at least these components (choose sensible names and paths):
+
+- A human-readable project overview and change log
+- A central configuration for allowed types and statuses
+- A set of shell scripts to: create artifacts, update the index/graph, aggregate status, create reflections, render/export prompts
+- A thin CLI entry-point that exposes common commands (new, index, status, reflect, sync, prompt, prompt-install)
+- A central index document (overview tables) and a status document (aggregated metrics)
+- A machine-readable knowledge-graph export (e.g., TSV/JSON) updated automatically
+- Product area (vision, specification)
+- Work area (epics, features, stories, tasks) with milestones support
+- Architecture area (ADRs)
+- Reflections area (ACE – Agentic Context Engineering)
+- Knowledge ingestion areas (original sources and derived summaries)
+- Reviews area (Curator decisions)
+- Prompt area (global guardrails + task prompts + agent addenda)
+- Templates area (for all artifact types)
+- A registry for skills (role-aligned capabilities), tool contracts, and optional MCP capability descriptors
+
+## Knowledge graph contract (frontmatter)
+
+All artifacts begin with YAML frontmatter:
+
+```yaml
+---
+id: 20251107-120000-xyz
+type: story
+title: "..."
+status: draft
+owner: ""
+parent: ""        # parent artifact ID if any
+milestone: "M1"
+tags: [core]
+created: 2025-11-07
+updated: 2025-11-07
+---
+```
+
+- Mandatory: id, type, title, status
+- Recommended: tags, parent, milestone
+- Keep `updated` accurate; link via IDs/relative paths.
+
+## Core requirements to implement
+
+1) Product foundations
+   - Product vision and specification templates and initial docs
+   - Cornerstone documents: engineering best practices, conventions, contribution guidelines
+   - Spec-as-source: implementation and tasks derive from spec; keep spec canonical
+
+2) Work breakdown & agile
+   - Epics, Features, Stories, Tasks; milestones
+   - Sprint planning and status updates (auto summaries, counts)
+   - MVP + increments; acceptance criteria on each level
+
+3) Architecture decisions (ADR)
+   - Template for ADRs; alternatives, trade-offs, consequences; references
+   - Cross-links to affected artifacts
+
+4) ACE (Agentic Context Engineering) reflections at all levels
+   - Roles: Generator, Reflector, Curator; handovers between roles
+   - ACE (Agentic Context Engineering) phases: Framing → Grounding & Evidence → Validation & Risks → Decision & Next Actions
+   - Reflection template with fields for role, session, context sources, uncertainties, confidence
+
+5) Knowledge ingestion (sources + summaries)
+   - `type: source` with metadata (url, author, publisher, dates, license, trust)
+   - `type: summary` derived from a source (TL;DR, key points, structured summary, evidence/quotes with citations, relevance, risks/bias, actionables, open questions)
+   - Strict provenance; never store full copyrighted text
+
+6) Agent prompts & model awareness
+   - Central prompts (canonical) for each task (ADR, ACE reflection, sprint planning, status update, implementation, code change, knowledge ingestion)
+   - Agent-specific files as addenda only; renderer composes central + addendum
+   - Installer to export prompts and optionally copy to clipboard (macOS)
+   - Detect model/agent and apply constraints (conciseness, token limits, JSON compliance when needed)
+
+7) Memory strategy
+   - Define lightweight memory guidelines per role/group (e.g., what to persist, where to link, when to purge)
+   - Store memory as concise Markdown notes linked by IDs, organized in a dedicated area per role/group and referenced by artifacts as needed
+
+8) Clarification policy
+   - When specifics are not clear: create a clarification entry/task; mark unknowns; do not proceed with risky steps
+
+9) Self-maintenance and provenance
+   - Provide scripts that auto-update the central index, the status overview, and a machine-readable graph export
+   - Maintain a human-readable change log for externally visible behavior changes
+
+## Scripts to implement (behavior outline; do not fix names)
+
+- Library helpers: ID/date generation, frontmatter accessors, safe text replacement (POSIX/BSD-compatible)
+- New entity: create artifacts from templates; support all types; URL option for sources
+- Update index: scan knowledge base → refresh machine-readable graph and overview tables in the index document
+- Update status: aggregate counts and write summaries to the status document
+- Reflect: create an ACE (Agentic Context Engineering) reflection for a given artifact
+- Sync: run index + status updates
+- Prompt rendering: compose (guardrails + central task + agent addendum + config/index excerpts + optional context)
+- Prompt installer: export rendered prompt to an agent-specific export location and to clipboard on macOS (optional)
+- CLI entry point: expose commands (new, index, status, reflect, sync, prompt, prompt-install)
+- Skills registry management: add/list/update/remove skills; filter by role/task; produce compact injection payloads
+- Tool contract validation: lint/validate input/output schemas; safety checks; generate minimal usage docs
+- MCP capability discovery/status: detect available capabilities, map to tool contracts, record limits (tokens/rate), and expose a read-only summary
+- Optional tool invocation adapters (stubs) with clear safety constraints (no destructive defaults)
+
+## Templates to implement (content outline; do not fix names)
+
+- Vision, Specification: concise structure with references and milestones
+- Epic, Feature, Story, Task: frontmatter + acceptance criteria + links to parents
+- ADR: context, decision, alternatives/trade-offs, consequences, references
+- ACE (Agentic Context Engineering) Reflection: role, session, context_sources, ACE phases, uncertainties, confidence, curator handover
+- Review: curator checks, decision (accepted/needs work), follow-ups
+- Source, Summary: knowledge ingestion with provenance and derived summary
+- Skill, Tool, MCP capability: registry artifacts describing capabilities, schemas, safety, and (optional) MCP bindings
+
+### Inline schema prototypes (illustrative; adapt names/fields as needed)
+
+Skill (role-aligned capability):
+
+```yaml
+---
+id: <ID>
+category: skill
+name: ""
+roles: [Generator, Reflector, Curator]
+purpose: ""
+inputs:
+   - { name: "", type: "", required: true }
+outputs:
+   - { name: "", type: "" }
+failure_modes: [""]
+triggers: ["when …"]
+defer_when: ["if unclear requirements"]
+safety_notes: ["no destructive actions"]
+updated: <DATE>
+---
+```
+
+Tool contract:
+
+```yaml
+---
+id: <ID>
+category: tool
+name: ""
+description: ""
+input_schema: { type: object, properties: {}, required: [] }
+output_schema: { type: object, properties: {}, required: [] }
+mcp_capability: ""  # optional mapping
+safety_notes: ["validate inputs", "rate-limit"]
+updated: <DATE>
+---
+```
+
+MCP capability descriptor (optional):
+
+```yaml
+---
+id: <ID>
+category: capability
+name: ""
+provider: "mcp"
+resource: ""
+method: ""
+input_schema: { type: object, properties: {}, required: [] }
+output_schema: { type: object, properties: {}, required: [] }
+limits: { tokens: 0, rate: "" }
+updated: <DATE>
+---
+```
+
+## Prompts to implement (do not fix names)
+
+- Global guardrails: frontmatter usage, no hallucinations, IDs/paths, statuses, ACE roles, handovers
+- Central task prompts (one per task): ADR, ACE (Agentic Context Engineering) reflection, sprint planning, status update, implementation, code change, knowledge ingestion
+- Agent addenda (per agent/task): concise bullets only; must not duplicate central prompts
+- Skills/Tools/MCP prompts: define/register/list/update skills and tool contracts; inject a relevant subset into task prompts based on role, task, and context; align with MCP capabilities when available
+
+### Prompt template (best practices)
+
+Provide a concise prompt template to be reused across tasks and agents. The template should enforce clarity, progressive disclosure, reference-first behavior, and verifiable outputs.
+
+```markdown
+# Role / Persona
+- Who you are and how you should behave (tone, depth, step size)
+
+# Objective
+- Precise task goal(s); desired impact and scope boundaries
+
+# Context summary (optional, short)
+- Key facts/IDs/links; avoid pasting large texts
+
+# Constraints & guardrails
+- Frontmatter + config compliance; no hallucinations; cite sources; progressive disclosure
+
+# Inputs (contract)
+- Expected inputs (IDs/paths/URLs) and their types; optional vs required
+
+# Plan (small, testable steps)
+- Step 1: ...
+- Step 2: ...
+- Step 3: ...
+
+# Tool usage plan (if applicable)
+- Which tools/functions to call, with input/output schemas and safety checks
+
+# Output contract
+- Exact format (Markdown with YAML frontmatter when creating/updating artifacts)
+- Mandatory sections/fields; where to include references
+
+# Quality gates
+- Build/Lint/Test (or structural checks); success criteria
+
+# Risks, assumptions, open questions
+- Brief list; propose clarifications if blocking
+
+# Next action
+- Immediate next step; request missing info if needed
+```
+
+## Agent integration (central-first + addendum)
+
+- Rendering always includes the central prompt first, then the agent-specific addendum
+- Provide READMEs per agent with usage notes
+- Support agents: Copilot (VS Code), Claude, OpenAI, Goose (OpenAI-compatible)
+
+## Skills, tools, and MCP capabilities
+
+- Define a compact skills registry mapped to roles (e.g., Generator, Reflector, Curator, Architect, PM, Engineer). For each skill, specify:
+   - Purpose, prerequisites, typical inputs/outputs, and failure modes
+   - When to apply (triggers) and when to defer (clarification policy)
+- Define tool contracts (name, description, input schema, output schema, safety notes). Keep interfaces minimal and composable.
+- If the environment supports MCP (Model Context Protocol), provide capability descriptors for the most useful functions, for example:
+   - Knowledge access (read-only slices; domain allowlist for web fetch)
+   - Repository operations (safe reads; constrained writes within the project)
+   - VCS insights (status/diff) and search (code/text)
+   - Prompt rendering/export plumbing
+- Ensure tools/skills are reference-first (IDs/paths/URLs) and respect progressive disclosure and safety constraints.
+
+## Context efficiency & progressive disclosure
+
+- Keep answers short, structured, and reference-heavy
+- Ask for minimal additional context (file IDs/paths) when needed
+- Avoid large payloads; prefer summaries and links
+
+## Output contract (what to produce now — no fixed names or paths)
+
+- Create a minimal, working repository scaffold with all required components described above
+- Include working POSIX/BSD-compatible shell scripts and templates with valid YAML frontmatter
+- Provide central prompts and agent addenda as specified; include renderer/installer capabilities
+- Expose a CLI with commands to create artifacts, update index/status, perform reflections, render/export prompts
+- Include a central index document and a status document with initial AUTO-GENERATED sections
+- Validate by a dry run: create an epic, add a source+summary, render a prompt; document the steps in the main README
+- Provide a minimal skills/tools/MCP registry and demonstrate filtered injection into a task prompt
+
+## Smoke test checklist (execute and document)
+
+1) Initialize the minimal structure and components (config, scripts, prompts, templates, index/status, graph export)
+2) Create a sample epic/feature/story and verify:
+   - Frontmatter validity, IDs/links
+   - Index shows the item; status aggregates counts
+3) Knowledge ingestion:
+   - Add one source (with metadata) and a derived summary (parent link, citations)
+   - Verify provenance fields and linkage
+4) Prompt rendering:
+   - Render a task prompt and confirm layout: central task → agent addendum → config/index excerpts
+5) Reflection (ACE – Agentic Context Engineering):
+   - Create a reflection with all ACE phases and a curator handover
+6) Export a prompt for one agent and check the exported artifact
+7) Skills/Tools/MCP:
+   - Register one skill and one tool with schemas; optionally map a capability
+   - Validate schemas; generate an injection payload and render a task prompt including it
+8) Document the dry run outcomes succinctly in the overview doc
+
+Record pass/fail and key notes for each step. Blockers should create clarification tasks rather than proceeding with assumptions.
+
+## Acceptance criteria
+
+- The repository builds (no syntax errors), scripts execute on macOS/Linux shells
+- Lint sanity: Markdown headings present; frontmatter parses; tables render
+- Index/status update successfully and reflect artifacts
+- Prompts render with “central task” followed by “agent-specific addendum” and config/index excerpts
+- Knowledge ingestion creates correct links and provenance; no fulltext copied
+- ACE (Agentic Context Engineering) reflections template enforces phases and curator handover
+- Spec-as-source documented; provenance recorded across artifacts
+
+## Final notes
+
+- Keep all content concise and structured to maximize token efficiency
+- Prefer IDs and relative paths throughout
+- If uncertain, create a clarification task and pause further steps

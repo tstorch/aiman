@@ -23,6 +23,9 @@ Create for me a set of prompts, scripts (bash) and templates (markdown files) to
 - include model detection and injection of model-specific information and constraints in the prompts to leverage each model to its maximum; include a prompt and script to update this information
 - efficency such as llm context window efficiency is mandatory for the agent in order to e.g. prevent known shortcomings for LLMs, one such technic is progressive disclosure and as such the agent and document structure must support this and other technics
 - the structure of the framework should adhere to best practices of software engineering, project management and ai interaction engineering
+- skills a la claude skills, tools and mcp capabilities
+- Smoke-Test“-Checkliste am Ende des Prompts, damit ein Agent die erfolgreiche Generierung sofort validiert und dokumentiert
+- Prompt-template nach aktuell bekannten Best Practices
 
 
 The framework is well integrated and maintaines itself, e.g. cross-updating status documents etc.
