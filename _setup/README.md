@@ -2,6 +2,11 @@
 
 This folder contains the framework bootstrap specification. The file `generate_framework_prompt.md` defines the architecture, scripts, prompt composition, provenance rules, validator requirements, and the web artifact explorer. This README summarizes purpose, usage, and maintenance.
 
+## Quick links
+
+- Central Bootstrap Prompt: ./generate_framework_prompt.md
+- Operator’s Guide: ./operator_guide.md
+
 ## Purpose of `generate_framework_prompt.md`
 
 This file is the central framework blueprint. It covers:
