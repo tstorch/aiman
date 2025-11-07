@@ -446,6 +446,135 @@ Wiederverwendbare, kopierbare Vorlage ohne Frontmatter. Felder bei Bedarf anpass
 }
 ```
 
+## Appendix: config schema for types/statuses
+
+Minimal zulässige Struktur für die zentrale Konfiguration der erlaubten Typen und Statuswerte.
+
+YAML (illustrativ):
+
+```yaml
+types:
+   - epic
+   - feature
+   - story
+   - task
+   - adr
+   - reflection
+   - review
+   - source
+   - summary
+
+statuses:
+   - draft
+   - proposed
+   - in-progress
+   - review
+   - accepted
+   - done
+   - deprecated
+
+rules:
+   frontmatter_required: [id, type, title, status]
+   link_policy:
+      use_relative_paths: true
+      id_reference_required: true
+```
+
+JSON (gleichwertig):
+
+```json
+{
+   "types": ["epic", "feature", "story", "task", "adr", "reflection", "review", "source", "summary"],
+   "statuses": ["draft", "proposed", "in-progress", "review", "accepted", "done", "deprecated"],
+   "rules": {
+      "frontmatter_required": ["id", "type", "title", "status"],
+      "link_policy": { "use_relative_paths": true, "id_reference_required": true }
+   }
+}
+```
+
+## Appendix: ID policy (format & generation)
+
+- Format: `YYYYMMDD-HHMMSS-<slug>` oder `YYYYMMDD-HHMMSS-<rand>`
+- Eigenschaften:
+   - Zeitbasierte Präfixe für natürliche Ordnung
+   - Kleinbuchstaben, Ziffern, Bindestriche im Suffix (`[a-z0-9-]{3,}`)
+   - Eindeutigkeit: Timestamp + 3–6 zufällige Zeichen reichen in Praxis
+- Regex (vereinfachend):
+
+```text
+^[0-9]{8}-[0-9]{6}-[a-z0-9-]{3,}$
+```
+
+- Generatorhinweise:
+   - Nutze Systemzeit (UTC) für `YYYYMMDD-HHMMSS`
+   - Füge 3–6 zufällige alphanumerische Zeichen an (lowercase)
+   - Keine Leerzeichen, keine Unterstriche
+
+## Appendix: model/agent constraints matrix (JSON template)
+
+Vorlage zur Dokumentation agent-/modell-spezifischer Constraints (Platzhalter ausfüllen).
+
+```json
+{
+   "agents": [
+      {
+         "name": "copilot",
+         "preferred_format": ["markdown"],
+         "max_context_tokens": null,
+         "guidance": ["kurze, schrittweise Antworten", "Referenzen statt Volltexte"],
+         "safety": ["keine destruktiven Aktionen", "rate-limit aware"],
+         "notes": []
+      },
+      {
+         "name": "claude",
+         "preferred_format": ["markdown", "json"],
+         "max_context_tokens": null,
+         "guidance": ["prägnante Struktur", "lange Reasoning-Schritte möglich"],
+         "safety": ["Quellenzitierung", "progressive disclosure"],
+         "notes": []
+      },
+      {
+         "name": "openai",
+         "preferred_format": ["markdown", "json"],
+         "max_context_tokens": null,
+         "guidance": ["bei Bedarf JSON-Ausgabe strikt halten", "Tokenbudget beachten"],
+         "safety": ["keine Volltexte externer Quellen", "validiere Frontmatter"],
+         "notes": []
+      },
+      {
+         "name": "goose",
+         "preferred_format": ["markdown", "json"],
+         "max_context_tokens": null,
+         "guidance": ["OpenAI-kompatible Nutzung"],
+         "safety": ["gleiches Sicherheitsprofil wie OpenAI"],
+         "notes": []
+      }
+   ]
+}
+```
+
+## Appendix: repository audit checklist (concise)
+
+- Frontmatter vollständig (Pflichtfelder), `updated` aktuell
+- Typen/Status entsprechen zentraler Konfiguration
+- IDs eindeutig; Pfade relativ; Eltern-/Kind-Verlinkungen korrekt
+- Waisen/Dead Links: keine toten Referenzen
+- Index/Status aktuell; Graph-Export vorhanden
+- Prompt-Drift: zentrale Prompts vs. Agent-Addenda konsistent; keine Duplikate
+- Knowledge Ingestion: Quellen-Metadaten vollständig; Summary mit Zitaten/Provenienz
+- ACE-Reflexionen: alle Phasen + Curator-Handover vorhanden
+- Reviews: Entscheidungen dokumentiert; Folgeaktionen erfasst
+- Improvement-Backlog: abgeleitete Tasks mit Owner/Datum
+
+## Appendix: quality gates rubric (PASS/FAIL)
+
+- Build: PASS, wenn Skripte ohne Syntaxfehler laufen (z. B. `shellcheck` optional)
+- Lint: PASS, wenn Markdown-Überschriften/Lücken/Codefences stimmig; Frontmatter parsebar
+- Tests/Checks: PASS, wenn Index/Status/Graph-Export generiert; Drift/Audit ohne Blocker
+- Selbstcheck nach Änderungen:
+   1) `new` auf Probe, 2) `sync`, 3) Prompt rendern, 4) eine ACE-Reflexion anlegen, 5) Audit laufen lassen
+
 ## Final notes
 
 - Keep all content concise and structured to maximize token efficiency
