@@ -8,7 +8,7 @@ Dieses Dokument ist der zentrale Einstiegspunkt in alle Artefakte. Tabellen werd
 - Arbeit: Epics, Features, Stories, Tasks
 - Architektur: ADRs und Architekturübersicht
 - Agile: MVP, Roadmap, Milestones
-- Reflexion: ACE-Reviews auf allen Ebenen
+- Reflexion: ACE (Agentic Context Engineering) auf allen Ebenen
 - Status: Kennzahlen und Fortschritt
 
 ## Produkt
@@ -55,7 +55,7 @@ Dieses Dokument ist der zentrale Einstiegspunkt in alle Artefakte. Tabellen werd
 |---|---|---|---|
 <!-- AUTO-GENERATED: ADR TABLE END -->
 
-## Reflexionen (ACE)
+## Reflexionen (ACE – Agentic Context Engineering)
 
 <!-- AUTO-GENERATED: REFLECTIONS TABLE START -->
 | ID | Title | Status | Updated |
@@ -75,3 +75,10 @@ Dieses Dokument ist der zentrale Einstiegspunkt in alle Artefakte. Tabellen werd
 | ID | Title | Status | Updated |
 |---|---|---|---|
 <!-- AUTO-GENERATED: SUMMARIES TABLE END -->
+
+## Reviews (Curator)
+
+<!-- AUTO-GENERATED: REVIEWS TABLE START -->
+| ID | Title | Status | Updated |
+|---|---|---|---|
+<!-- AUTO-GENERATED: REVIEWS TABLE END -->

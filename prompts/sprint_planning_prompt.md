@@ -9,6 +9,6 @@ Anleitung:
 - Schätze Aufwand grob (T-Shirt/Storypoints) und berücksichtige Kapazität/Velocity.
 - Definiere ein kleines, testbares MVP-Inkrement.
 - Erzeuge/aktualisiere Artefakte mit korrekter Frontmatter (parent, milestone, status).
-- Plane Reviews und ACE-Reflexionen am Ende.
+- Plane Reviews und ACE-Reflexionen (Agentic Context Engineering) am Ende.
 
 Ausgabe: Zusammenfassung und erzeugte/aktualisierte Artefakte (Links/IDs).

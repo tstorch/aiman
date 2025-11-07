@@ -7,5 +7,5 @@ default_status: draft
 default_milestone: "M1"
 conventions:
   id_format: "YYYYMMDD-HHMMSS-rand"
-  types: [epic, feature, story, task, adr, vision, specification, architecture, source, summary]
+  types: [epic, feature, story, task, adr, vision, specification, architecture, source, summary, review]
   status: [draft, proposed, in-progress, blocked, review, done, deprecated]

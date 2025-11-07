@@ -1,6 +1,6 @@
 # Aiman: Markdown-basierte Produktentwicklung mit Knowledge Graph
 
-Aiman ist ein leichtgewichtiges Framework aus Markdown-Templates, Prompts und Bash-Skripten für Produktentwicklung, Architekturarbeit (ADR), Agile-Planung (Epics/Features/Stories/Tasks) und kontinuierliche Reflexion (ACE). Das Repo fungiert als Knowledge Graph mit zentralem Einstieg.
+Aiman ist ein leichtgewichtiges Framework aus Markdown-Templates, Prompts und Bash-Skripten für Produktentwicklung, Architekturarbeit (ADR), Agile-Planung (Epics/Features/Stories/Tasks) und kontinuierliche Reflexion (ACE – Agentic Context Engineering). Das Repo fungiert als Knowledge Graph mit zentralem Einstieg.
 
 ## Schnellstart
 
@@ -14,7 +14,7 @@ Voraussetzungen: macOS/Linux, Bash, awk, sed, find, grep (Standard-Tools). Optio
     - `bash bin/aiman new epic "Meine erste Initiative" --tags onboarding,core`
 - Index/Status aktualisieren:
   - `bash scripts/sync.sh`
-- Reflexion (ACE) zu einem Artefakt erzeugen:
+- ACE-Reflexion (Agentic Context Engineering) zu einem Artefakt erzeugen:
   - `bash scripts/reflect.sh docs/work/epics/<ID>-<slug>.md`
 
 Hinweis: Falls du die Skripte als ausführbar nutzen willst, setze einmalig die Rechte:
@@ -31,7 +31,7 @@ chmod +x scripts/*.sh bin/aiman
 - `docs/product` – Vision, Spezifikation
 - `docs/work` – Epics, Features, Stories, Tasks
 - `docs/architecture/adr` – Architecture Decision Records
-- `docs/reflections` – ACE-Reflexionen
+- `docs/reflections` – ACE-Reflexionen (Agentic Context Engineering)
 - `templates` – Markdown-Vorlagen (YAML Frontmatter)
 - `prompts` – LLM-Prompts mit Guardrails
 - `scripts` – Bash-Skripte (Erzeugen, Index, Status, Reflexion, Sync)
@@ -63,16 +63,22 @@ Pflichtfelder: `id`, `type`, `title`, `status`. Empfohlen: `tags`, `parent` (wo 
 - `scripts/new-entity.sh` nutzt Templates und füllt Platzhalter (ID, TITLE, DATE, …).
 - `scripts/update-index.sh` durchsucht `docs/` und aktualisiert den Knowledge Graph (`docs/_graph/graph.tsv`) und die Übersichtstabellen in `docs/index.md`.
 - `scripts/update-status.sh` aggregiert Kennzahlen (Counts pro Typ/Status) und schreibt in `docs/status.md`.
-- `scripts/reflect.sh` erstellt eine ACE-Reflexion zu einem Artefakt.
+- `scripts/reflect.sh` erstellt eine ACE-Reflexion (Agentic Context Engineering) zu einem Artefakt.
 - `scripts/sync.sh` führt Index- und Status-Update aus.
 
 ## LLM-Guidelines und Prompts
 
-Unter `prompts/` findest du Guardrails (z. B. Halluzinationen minimieren, Quellen anfordern, strikt auf Frontmatter achten) sowie aufgabenspezifische Prompts (ADR, ACE, Planung, Review). Diese sind so strukturiert, dass Agenten zuverlässig arbeiten und ihre Schritte dokumentieren.
+Unter `prompts/` findest du Guardrails (z. B. Halluzinationen minimieren, Quellen anfordern, strikt auf Frontmatter achten) sowie aufgabenspezifische Prompts (ADR, ACE – Agentic Context Engineering, Planung, Review). Diese sind so strukturiert, dass Agenten zuverlässig arbeiten und ihre Schritte dokumentieren.
+
+ACE-Rollenmodell:
+
+- Generator: erzeugt/ändert Artefakte kontextbewusst und übergibt Ziele, Quellen, Hypothesen
+- Reflector: führt ACE-Reflexion (Framing, Grounding, Validation, Decision/Actions) aus
+- Curator: prüft, entscheidet, kuratiert und dokumentiert als `type: review`
 
 ## Nächste Schritte
 
 - Lege Vision und Spezifikation an (entweder über Templates oder direkt in `docs/product/`).
 - Erzeuge erste Epics/Features/Stories via Skript.
 - Entscheide architekturelle Fragen per ADR-Template und verlinke diese im Frontmatter der betroffenen Artefakte.
-- Nutze regelmäßige ACE-Reflexionen pro Ebene (Epic/Feature/Story/Task) und Meilenstein.
+- Nutze regelmäßige ACE-Reflexionen (Agentic Context Engineering) pro Ebene (Epic/Feature/Story/Task) und Meilenstein.

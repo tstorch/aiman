@@ -1,24 +1,38 @@
 ---
 id: {{ID}}
 type: review
-title: "{{TITLE}}"
+title: "Curator Review: {{TITLE}}"
 status: draft
 owner: "{{OWNER}}"
-parent: "{{PARENT}}"
+parent: "{{PARENT}}"  # referenziertes Artefakt (z. B. Reflection/ADR/Story)
 milestone: "{{MILESTONE}}"
-tags: [review]
+tags: [review, governance, {{TAGS}}]
 created: {{DATE}}
 updated: {{DATE}}
+# optional
+scope: "content|process|decision"
+resolution: "pending"
 ---
 
-## Umfang
+## Review-Zusammenfassung
 
-- Was wurde geprüft?
+- Kurz: Was wurde geprüft? Ergebnis?
 
-## Beobachtungen
+## Compliance-Checks
 
-- …
+- Frontmatter vollständig/konform (id, type, title, status, parent, tags, updated)
+- Konsistenz mit `config/project.yml` (Statuswerte, Typen)
+- Verlinkungen (parent, IDs, Pfade) korrekt
 
-## Empfehlungen
+## Risiken/Offene Punkte
 
-- …
+- ...
+
+## Entscheidung
+
+- akzeptiert / Nacharbeit nötig (was? wer? bis wann?)
+
+## Folgeaktionen
+
+- Änderungen an Artefakten
+- Updates in Index/Status

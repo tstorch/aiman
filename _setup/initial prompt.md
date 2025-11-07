@@ -7,9 +7,10 @@ Create for me a set of prompts, scripts (bash) and templates (markdown files) to
 - Cornerstone constitution, such as Software Engineering Best Practices (might be part of the knowledge graph infrastructure, see below)
 - Epics, Features, Storys, Tasks; milestones
 - Architecture planning, decision (ADR) and structured documentation
+- Clarification (regular and ad hoc, when not 100% clear); when specifics are not clear mark them as such and do not proceed with further steps until clarified
 - Working on artifacts such as implementation
 - Agile development: MVP plus incremental development, review
-- Reflection on each level (Epics, Features, Storys, Tasks; milestones) based on ACE ( see https://arxiv.org/html/2510.04618v1 )
+- Reflection on each level (Epics, Features, Storys, Tasks; milestones) based on Agentic Context Engineering ( see https://arxiv.org/html/2510.04618v1 ) utilizing the roles Generator/Reflector/Curator
 - Documentation (change and current state of development)
 - Development documents (processes, conventions, best practices, knowledge sources, ...)
 - The Repo basically works in its entirety as a knowledge graph with a central point of entry
