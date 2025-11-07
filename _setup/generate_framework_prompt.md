@@ -22,6 +22,7 @@ Design and generate a complete, self-maintaining Markdown-first framework for pr
 - A skills registry (role-aligned capabilities), tool contracts, and optional MCP capability descriptors
 - A reusable prompt template aligned with current best practices
 - A smoke-test checklist to validate the generated framework end-to-end
+- Continuous reflection and self-improvement across the initial output and all subsequent changes, including repository-wide audits and drift detection
 
 ## Constraints & guardrails
 
@@ -117,6 +118,14 @@ updated: 2025-11-07
    - Provide scripts that auto-update the central index, the status overview, and a machine-readable graph export
    - Maintain a human-readable change log for externally visible behavior changes
 
+10) Continuous reflection and self-improvement
+
+- Apply ACE (Agentic Context Engineering) not only to individual artifacts but also as a periodic repository-wide reflection sweep
+- Detect drift between canonical central prompts and agent addenda; propose fixes
+- Run guardrail/compliance health checks (frontmatter validity, allowed types/statuses, orphan links, dead references)
+- Maintain an improvement backlog (actionable tasks with owners/dates) derived from reflections/audits
+- Curator audits consolidate issues and decisions; updates ripple through the knowledge graph
+
 ## Scripts to implement (behavior outline; do not fix names)
 
 - Library helpers: ID/date generation, frontmatter accessors, safe text replacement (POSIX/BSD-compatible)
@@ -128,6 +137,10 @@ updated: 2025-11-07
 - Prompt rendering: compose (guardrails + central task + agent addendum + config/index excerpts + optional context)
 - Prompt installer: export rendered prompt to an agent-specific export location and to clipboard on macOS (optional)
 - CLI entry point: expose commands (new, index, status, reflect, sync, prompt, prompt-install)
+- Repository-wide audit: run ACE-based checks across artifacts; summarize findings
+- Drift detection: compare central prompts to agent addenda and flag inconsistencies
+- Health checks: validate frontmatter/contracts, link integrity, config conformance
+- Improvement backlog generator: convert audit/reflection findings into actionable items
 - Skills registry management: add/list/update/remove skills; filter by role/task; produce compact injection payloads
 - Tool contract validation: lint/validate input/output schemas; safety checks; generate minimal usage docs
 - MCP capability discovery/status: detect available capabilities, map to tool contracts, record limits (tokens/rate), and expose a read-only summary
@@ -142,6 +155,8 @@ updated: 2025-11-07
 - Review: curator checks, decision (accepted/needs work), follow-ups
 - Source, Summary: knowledge ingestion with provenance and derived summary
 - Skill, Tool, MCP capability: registry artifacts describing capabilities, schemas, safety, and (optional) MCP bindings
+- Meta-reflection / Retrospective: repository-wide reflection output with ACE phases and curator handover
+- Audit report & Improvement backlog entry: concise findings, decisions, and actions
 
 ### Inline schema prototypes (illustrative; adapt names/fields as needed)
 
@@ -205,6 +220,7 @@ updated: <DATE>
 - Central task prompts (one per task): ADR, ACE (Agentic Context Engineering) reflection, sprint planning, status update, implementation, code change, knowledge ingestion
 - Agent addenda (per agent/task): concise bullets only; must not duplicate central prompts
 - Skills/Tools/MCP prompts: define/register/list/update skills and tool contracts; inject a relevant subset into task prompts based on role, task, and context; align with MCP capabilities when available
+- Self-improvement & audit prompts: trigger repository-wide ACE reflections, drift detection, compliance checks, and improvement backlog generation
 
 ### Prompt template (best practices)
 
@@ -300,7 +316,10 @@ Provide a concise prompt template to be reused across tasks and agents. The temp
 7) Skills/Tools/MCP:
    - Register one skill and one tool with schemas; optionally map a capability
    - Validate schemas; generate an injection payload and render a task prompt including it
-8) Document the dry run outcomes succinctly in the overview doc
+8) Continuous self-improvement:
+   - Run a repository-wide audit/reflection; verify drift detection and health checks
+   - Produce a meta-reflection report and at least one improvement backlog entry
+9) Document the dry run outcomes succinctly in the overview doc
 
 Record pass/fail and key notes for each step. Blockers should create clarification tasks rather than proceeding with assumptions.
 
@@ -313,6 +332,43 @@ Record pass/fail and key notes for each step. Blockers should create clarificati
 - Knowledge ingestion creates correct links and provenance; no fulltext copied
 - ACE (Agentic Context Engineering) reflections template enforces phases and curator handover
 - Spec-as-source documented; provenance recorded across artifacts
+- Repository-wide audit/reflection runs, drift issues (if any) are reported or resolved, and an improvement backlog is produced
+
+## Quick dry-run plan (path-agnostic)
+
+- Initialize core structure and config
+- Create one epic with a child feature or story
+- Add one source and a derived summary linked to the source
+- Run index and status updates
+- Render one central task prompt and an agent-specific variant
+- Create one ACE (Agentic Context Engineering) reflection and a curator review
+- Register one skill and one tool; generate an injection payload and render a task prompt with it
+- Run a repository-wide audit/reflection; capture at least one improvement backlog entry
+
+## Appendix: compact skills registry schema (JSON)
+
+Minimal shape for a single skill entry; adapt fields as needed.
+
+```json
+{
+   "id": "SKILL-YYYYMMDD-HHMMSS-xyz",
+   "category": "skill",
+   "name": "Concise status summarization",
+   "roles": ["Generator", "Reflector", "Curator"],
+   "purpose": "Produce short, structured status summaries linked to artifacts.",
+   "inputs": [
+      { "name": "artifact_ids", "type": "array[string]", "required": true }
+   ],
+   "outputs": [
+      { "name": "summary_md", "type": "markdown" }
+   ],
+   "failure_modes": ["insufficient context", "outdated links"],
+   "triggers": ["when preparing status updates", "after sync"],
+   "defer_when": ["unclear scope", "missing artifact IDs"],
+   "safety_notes": ["never modify files directly; propose changes"],
+   "updated": "2025-11-07"
+}
+```
 
 ## Final notes
 
