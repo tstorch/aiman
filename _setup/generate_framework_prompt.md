@@ -247,7 +247,7 @@ Validator checks:
 - Update status: aggregate counts and write summaries to the status document
 - Reflect: create an ACE (Agentic Context Engineering) reflection for a given artifact
 - Sync: run index + status updates
-- Prompt rendering: compose (guardrails + central task + agent addendum + config/index excerpts + optional context)
+- Prompt rendering: compose (guardrails + central task + agent addendum + model addendum + config/index excerpts + optional context)
 - Prompt installer: export rendered prompt to an agent-specific export location and to clipboard on macOS (optional)
 - CLI entry point: expose commands (new, index, status, reflect, sync, prompt, prompt-install)
 - Provenance injection: when creating/updating via scripts/agents, capture and write `created_by` and `generated_with` and preserve/merge `context_sources`/`derived_from`
@@ -277,6 +277,7 @@ Behavior:
 - Scans Markdown files with YAML frontmatter.
 - Validates required provenance fields by `type` (including `created_by`, `generated_with`, `citations`, and `content_hash` for `source`).
 - Verifies `generated_with.prompt_hash` is present when artifacts were created/updated by framework scripts (detect via `generated_with.tool`).
+- If a model addendum is enabled for the detected model (from `created_by.model` or CLI flags) per the constraints matrix, verifies a model addendum exists in rendered prompts and appears after the agent addendum; if disabled/not defined, verifies no model addendum is present.
 - Emits a concise human-readable summary and optional JSON report to stdout.
 - Exit codes: 0 = PASS, 1 = FAIL.
 
@@ -357,6 +358,7 @@ updated: <DATE>
 - Global guardrails: frontmatter usage, no hallucinations, IDs/paths, statuses, ACE roles, handovers
 - Central task prompts (one per task): ADR, ACE (Agentic Context Engineering) reflection, sprint planning, status update, implementation, code change, knowledge ingestion
 - Agent addenda (per agent/task): concise bullets only; must not duplicate central prompts
+- Model addenda (per model/task): concise bullets only; optional; appended after agent addendum; must not duplicate central prompts
 - Skills/Tools/MCP prompts: define/register/list/update skills and tool contracts; inject a relevant subset into task prompts based on role, task, and context; align with MCP capabilities when available
 - Self-improvement & audit prompts: trigger repository-wide ACE reflections, drift detection, compliance checks, and improvement backlog generation
 
@@ -376,6 +378,7 @@ Provide a concise prompt template to be reused across tasks and agents. The temp
 
 # Constraints & guardrails
 - Frontmatter + config compliance; no hallucinations; cite sources; progressive disclosure
+- Renderer composition: central prompt first; agent addendum; optional model addendum; avoid duplication and resolve conflicts in favor of central prompt
 
 # Inputs (contract)
 - Expected inputs (IDs/paths/URLs) and their types; optional vs required
@@ -404,7 +407,9 @@ Provide a concise prompt template to be reused across tasks and agents. The temp
 
 ## Agent integration (central-first + addendum)
 
-- Rendering always includes the central prompt first, then the agent-specific addendum
+- Rendering always includes the central prompt first, then the agent-specific addendum; if relevant, append a model-specific addendum ("Model-Addendum").
+- Model-Addendum rules: concise bullets only; no Duplikate des zentralen Prompts oder Agent-Addendums; Konflikte werden zugunsten des zentralen Prompts aufgelöst.
+- Renderrangfolge: central → agent addendum → model addendum → config/index excerpts.
 - Provide READMEs per agent with usage notes
 - Support agents: Copilot (VS Code), Claude, OpenAI, Goose (OpenAI-compatible)
 
@@ -449,8 +454,9 @@ Provide a concise prompt template to be reused across tasks and agents. The temp
    - For the source: verify `content_hash` present and stable
    - For the summary: verify `citations` present (at least one item)
 4) Prompt rendering:
-   - Render a task prompt and confirm layout: central task → agent addendum → config/index excerpts
+   - Render a task prompt and confirm layout: central task → agent addendum → optional model addendum → config/index excerpts
    - Confirm provenance auto-injection: `created_by`, `generated_with.prompt_ref`, and `generated_with.prompt_hash`
+   - If a model addendum is enabled for the selected model (see constraints matrix), verify it appears after the agent addendum; otherwise confirm no model addendum is included
 5) Reflection (ACE – Agentic Context Engineering):
    - Create a reflection with all ACE phases and a curator handover
 6) Export a prompt for one agent and check the exported artifact
@@ -472,7 +478,7 @@ Record pass/fail and key notes for each step. Blockers should create clarificati
 - The repository builds (no syntax errors), scripts execute on macOS/Linux shells
 - Lint sanity: Markdown headings present; frontmatter parses; tables render
 - Index/status update successfully and reflect artifacts
-- Prompts render with “central task” followed by “agent-specific addendum” and config/index excerpts
+- Prompts render with “central task” followed by “agent-specific addendum”, then optional “model-specific addendum”, and config/index excerpts
 - Knowledge ingestion creates correct links and provenance; no fulltext copied
 - Provenance validator returns PASS (or reports actionable issues resolved within the run)
 - ACE (Agentic Context Engineering) reflections template enforces phases and curator handover
@@ -570,6 +576,51 @@ Kompakte Ergebnisform für eine Tool-Validierung (z. B. `tools validate`).
 }
 ```
 
+## Appendix: provenance validator result schema (JSON)
+
+Kompaktes, maschinenlesbares Ergebnisformat des Provenance Validators inkl. Model-Addendum-Check.
+
+```json
+{
+   "valid": true,
+   "fail_count": 0,
+   "errors": [
+      { "path": "docs/feature-x.md::frontmatter.created_by", "message": "missing created_by.agent", "severity": "error", "code": "prov.missing" }
+   ],
+   "warnings": [
+      { "path": "docs/summary-y.md::frontmatter.citations[0].locator", "message": "locator missing (non-strict)", "severity": "warning", "code": "citations.shape" }
+   ],
+   "checks": {
+      "frontmatter_required": { "pass": true, "details": "all required fields present" },
+      "provenance_fields": { "pass": true, "details": "created_by/generated_with ok" },
+      "citations_shape": { "pass": true, "details": "all citations include id/locator/quote/quote_hash" },
+      "source_content_hash": { "pass": true, "details": "sha256 present and valid" },
+      "prompt_hash_present": { "pass": true, "details": "generated_with.prompt_hash present where tool detected" },
+      "model_addendum": {
+         "pass": true,
+         "required": true,
+         "found": true,
+         "placement_ok": true,
+         "details": "model addendum rendered after agent addendum for model gpt-4o"
+      }
+   },
+   "files": [
+      {
+         "path": "prompts/rendered/status_update.md",
+         "type": "rendered-prompt",
+         "created_by": { "agent": "openai", "model": "gpt-4o" },
+         "generated_with": { "tool": "aiman-cli", "prompt_hash": "..." },
+         "checks": {
+            "model_addendum": { "pass": true, "required": true, "found": true, "placement_ok": true }
+         }
+      }
+   ],
+   "strict": true,
+   "checked_at": "2025-11-07T12:00:00Z",
+   "schema_version": "1.0.0"
+}
+```
+
 ## Appendix: skills registry entry form (JSON template)
 
 Wiederverwendbare, kopierbare Vorlage ohne Frontmatter. Felder bei Bedarf anpassen.
@@ -659,7 +710,7 @@ JSON (gleichwertig):
 
 ## Appendix: model/agent constraints matrix (JSON template)
 
-Vorlage zur Dokumentation agent-/modell-spezifischer Constraints (Platzhalter ausfüllen).
+Vorlage zur Dokumentation agent-/modell-spezifischer Constraints (Platzhalter ausfüllen). Berücksichtigt Model-Addenda: steuere Rendering (aktiviert, Position nach Agent-Addendum, max. Bullets, Duplikats-/Konfliktregeln) pro Modell.
 
 ```json
 {
@@ -696,7 +747,44 @@ Vorlage zur Dokumentation agent-/modell-spezifischer Constraints (Platzhalter au
          "safety": ["gleiches Sicherheitsprofil wie OpenAI"],
          "notes": []
       }
-   ]
+   ],
+   "models": [
+      {
+         "agent": "openai",
+         "name": "gpt-4o",
+         "match": ["gpt-4o", "gpt-4o-mini"],
+         "preferred_format": ["markdown", "json"],
+         "guidance": ["kurze Bullets im Model-Addendum", "JSON strikt wenn gefordert"],
+         "addendum": {
+            "enabled": true,
+            "max_bullets": 8,
+            "placement": "after-agent",
+            "duplicate_policy": "forbid"
+         },
+         "safety": ["keine Volltexte externer Quellen", "validiere Frontmatter"],
+         "notes": []
+      },
+      {
+         "agent": "claude",
+         "name": "claude-3.5",
+         "match": ["claude-3.5", "claude-3-opus"],
+         "preferred_format": ["markdown", "json"],
+         "guidance": ["prägnante Struktur", "längere Reasoning-Schritte möglich"],
+         "addendum": {
+            "enabled": true,
+            "max_bullets": 10,
+            "placement": "after-agent",
+            "duplicate_policy": "forbid"
+         },
+         "safety": ["Quellenzitierung", "progressive disclosure"],
+         "notes": []
+      }
+   ],
+   "composition": {
+      "order": ["central", "agent", "model", "excerpts"],
+      "conflict_resolution": "prefer-central",
+      "dedupe": true
+   }
 }
 ```
 
