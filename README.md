@@ -78,6 +78,29 @@ ACE-Rollenmodell:
 
 ## Nächste Schritte
 
+## Agent-Integrationen
+
+Prompts für populäre Agenten sind vorbereitet und können gerendert/exportiert werden:
+
+- Unterstützte Agenten: Copilot (VS Code), Claude Code, OpenAI, Goose (OpenAI-kompatibel)
+- Unterstützte Tasks: adr, ace_reflection, sprint_planning, status_update, code_change, implementation, knowledge_ingestion
+
+Hinweis zum Prinzip: Der zentrale Prompt (unter `prompts/*_prompt.md`) ist die maßgebliche Quelle. Agent-spezifische Wrapper unter `prompts/agents/<agent>/<task>.md` liefern nur Zusatzhinweise (Addendum) und werden beim Rendern automatisch nach dem zentralen Prompt eingefügt.
+
+Rendern (Ausgabe auf stdout):
+
+```sh
+bin/aiman prompt --agent copilot --task ace_reflection --context docs/index.md,config/project.yml
+```
+
+Export + Zwischenablage (macOS):
+
+```sh
+bin/aiman prompt-install --agent copilot --task adr
+```
+
+Exportierte Dateien liegen unter `prompts/agents/<agent>/exports/<task>.md`.
+
 - Lege Vision und Spezifikation an (entweder über Templates oder direkt in `docs/product/`).
 - Erzeuge erste Epics/Features/Stories via Skript.
 - Entscheide architekturelle Fragen per ADR-Template und verlinke diese im Frontmatter der betroffenen Artefakte.
