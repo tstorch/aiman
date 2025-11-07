@@ -115,16 +115,16 @@ Section-level structure when citing evidence (preferred in content, not frontmat
 Implement automatic provenance injection across the CLI and render/export paths. Behavior and contract:
 
 - On any create/update action performed by framework scripts (new, reflect, prompt render/export, code change helpers):
-   - Set `created_by` if missing and always update `generated_with`.
-   - `created_by.agent`: detected from environment (prefer `AIMAN_AGENT`, fallback to `copilot|claude|openai|goose|manual`).
-   - `created_by.model`: from `AIMAN_MODEL` or renderer metadata if available; else empty string.
-   - `created_by.version`: script/agent version if known; else empty string.
-   - `generated_with.tool`: the invoking tool name (e.g., `aiman-cli`, script filename).
-   - `generated_with.command`: sanitized command summary (no secrets), e.g., `new --type story --title ...`.
-   - `generated_with.prompt_ref`: path/ID of the prompt used when rendering (central + agent addendum); empty when not applicable.
-   - `generated_with.prompt_hash`: SHA-256 of the fully rendered prompt after normalization.
-   - Merge (do not overwrite) arrays: `context_sources` and `derived_from` when flags `--context` / `--from` are provided.
-   - Always refresh `updated` (UTC date) on write.
+  - Set `created_by` if missing and always update `generated_with`.
+  - `created_by.agent`: detected from environment (prefer `AIMAN_AGENT`, fallback to `copilot|claude|openai|goose|manual`).
+  - `created_by.model`: from `AIMAN_MODEL` or renderer metadata if available; else empty string.
+  - `created_by.version`: script/agent version if known; else empty string.
+  - `generated_with.tool`: the invoking tool name (e.g., `aiman-cli`, script filename).
+  - `generated_with.command`: sanitized command summary (no secrets), e.g., `new --type story --title ...`.
+  - `generated_with.prompt_ref`: path/ID of the prompt used when rendering (central + agent addendum); empty when not applicable.
+  - `generated_with.prompt_hash`: SHA-256 of the fully rendered prompt after normalization.
+  - Merge (do not overwrite) arrays: `context_sources` and `derived_from` when flags `--context` / `--from` are provided.
+  - Always refresh `updated` (UTC date) on write.
 
 Normalization and hashing:
 
@@ -148,34 +148,34 @@ Success criteria:
 Use a structured list in frontmatter for citations when stricter traceability is required (summaries, ADRs, reflections):
 
 - Required per item:
-   - `id`: internal artifact ID (preferred) or external URL.
-   - `locator`: section/paragraph/line selector (e.g., heading slug, anchor, line range).
-   - `quote`: minimal necessary excerpt only (no fulltexts).
-   - `quote_hash`: SHA-256 of a normalized `quote` (trim, normalize whitespace/newlines).
+  - `id`: internal artifact ID (preferred) or external URL.
+  - `locator`: section/paragraph/line selector (e.g., heading slug, anchor, line range).
+  - `quote`: minimal necessary excerpt only (no fulltexts).
+  - `quote_hash`: SHA-256 of a normalized `quote` (trim, normalize whitespace/newlines).
 - Recommended:
-   - `accessed`: ISO timestamp for web sources.
-   - `license`: if relevant.
+  - `accessed`: ISO timestamp for web sources.
+  - `license`: if relevant.
 
 Enforcement:
 
 - For `type: summary`, `type: adr`, and `type: reflection`, require at least one `citations` entry (configurable minimum via central config).
 - Validator flags:
-   - Missing `locator` or `quote_hash` → warning (non-strict) or error (strict mode).
-   - External `id` URLs must be absolute and HTTPS.
+  - Missing `locator` or `quote_hash` → warning (non-strict) or error (strict mode).
+  - External `id` URLs must be absolute and HTTPS.
 
 ### Source integrity (content_hash)
 
 For `type: source`, include integrity metadata to support snapshots and verification:
 
 - Required fields in frontmatter:
-   - `url`: canonical source URL (if applicable).
-   - `retrieved_at`: ISO timestamp when accessed.
-   - `content_hash`: SHA-256 of the retrieved content (normalized text or binary as-is).
-   - `hash_algo`: `sha256` (default).
-   - `content_length`: byte length at retrieval time (if available).
+  - `url`: canonical source URL (if applicable).
+  - `retrieved_at`: ISO timestamp when accessed.
+  - `content_hash`: SHA-256 of the retrieved content (normalized text or binary as-is).
+  - `hash_algo`: `sha256` (default).
+  - `content_length`: byte length at retrieval time (if available).
 - Optional:
-   - `etag` / `last_modified` if provided by server headers.
-   - `snapshot_path`: relative path to an internal snapshot (only if license permits; otherwise omit content and keep hash-only).
+  - `etag` / `last_modified` if provided by server headers.
+  - `snapshot_path`: relative path to an internal snapshot (only if license permits; otherwise omit content and keep hash-only).
 
 CLI behavior:
 
@@ -291,8 +291,8 @@ Output (JSON, when `--json`): see "Appendix: provenance validator result schema 
 - ACE (Agentic Context Engineering) Reflection: role, session, context_sources, ACE phases, uncertainties, confidence, curator handover
 - Review: curator checks, decision (accepted/needs work), follow-ups
 - Source, Summary: knowledge ingestion with provenance and derived summary
-   - Source must include retrieval metadata and a SHA-256 content hash for integrity checks
-   - Summary/ADR/Reflection may include structured `citations` (see Provenance contract)
+  - Source must include retrieval metadata and a SHA-256 content hash for integrity checks
+  - Summary/ADR/Reflection may include structured `citations` (see Provenance contract)
 - Skill, Tool, MCP capability: registry artifacts describing capabilities, schemas, safety, and (optional) MCP bindings
 - Meta-reflection / Retrospective: repository-wide reflection output with ACE phases and curator handover
 - Audit report & Improvement backlog entry: concise findings, decisions, and actions
