@@ -402,6 +402,50 @@ Minimales, kopierbares JSON für ein Tool-Contract; Felder bei Bedarf anpassen.
 }
 ```
 
+## Appendix: tool validation result schema (JSON)
+
+Kompakte Ergebnisform für eine Tool-Validierung (z. B. `tools validate`).
+
+```json
+{
+   "tool_id": "TOOL-YYYYMMDD-HHMMSS-xyz",
+   "valid": true,
+   "errors": [
+      { "path": "input_schema.properties.paths", "message": "must be array", "severity": "error", "code": "schema.type" }
+   ],
+   "warnings": [
+      { "path": "safety_notes[0]", "message": "missing rate-limit note", "severity": "warning", "code": "safety.missing" }
+   ],
+   "suggestions": [
+      "Add 'dry_run' boolean input",
+      "Document failure modes"
+   ],
+   "checked_at": "2025-11-07T12:00:00Z",
+   "schema_version": "1.0.0"
+}
+```
+
+## Appendix: skills registry entry form (JSON template)
+
+Wiederverwendbare, kopierbare Vorlage ohne Frontmatter. Felder bei Bedarf anpassen.
+
+```json
+{
+   "id": "SKILL-YYYYMMDD-HHMMSS-xyz",
+   "category": "skill",
+   "name": "",
+   "roles": ["Generator", "Reflector", "Curator"],
+   "purpose": "",
+   "inputs": [ { "name": "", "type": "", "required": true } ],
+   "outputs": [ { "name": "", "type": "" } ],
+   "failure_modes": [],
+   "triggers": [],
+   "defer_when": [],
+   "safety_notes": [],
+   "updated": "YYYY-MM-DD"
+}
+```
+
 ## Final notes
 
 - Keep all content concise and structured to maximize token efficiency

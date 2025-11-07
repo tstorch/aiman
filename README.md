@@ -129,3 +129,12 @@ Exportierte Dateien liegen unter `prompts/agents/<agent>/exports/<task>.md`.
 - Erzeuge erste Epics/Features/Stories via Skript.
 - Entscheide architekturelle Fragen per ADR-Template und verlinke diese im Frontmatter der betroffenen Artefakte.
 - Nutze regelmäßige ACE-Reflexionen (Agentic Context Engineering) pro Ebene (Epic/Feature/Story/Task) und Meilenstein.
+
+### Agent-Reference (kurz)
+
+- Copilot (VS Code): Nutzt den Prompt-Renderer; Export via `prompt-install`. Beachte kurze, schrittweise Antworten und Kontextfenster.
+- Claude: Gute Eignung für lange Reasoning-Schritte; halte Anweisungen prägnant und strukturiert.
+- OpenAI: Achte auf Tokenbudget und gegebenenfalls JSON-konforme Ausgaben.
+- Goose (OpenAI-kompatibel): Gleiche Nutzung wie OpenAI; verwende die gleichen Render-/Export-Flows.
+
+Siehe per-Agent-READMEs unter `prompts/agents/<agent>/README.md` für Details und Hinweise.
