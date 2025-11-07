@@ -110,6 +110,84 @@ Section-level structure when citing evidence (preferred in content, not frontmat
 - A dedicated "Evidenz & Zitate" block with short quotes and precise citations (ID/URL + section/selector)
 - Do not paste fulltexts; use minimal quotes and exact references
 
+### Provenance automation (CLI & renderer)
+
+Implement automatic provenance injection across the CLI and render/export paths. Behavior and contract:
+
+- On any create/update action performed by framework scripts (new, reflect, prompt render/export, code change helpers):
+   - Set `created_by` if missing and always update `generated_with`.
+   - `created_by.agent`: detected from environment (prefer `AIMAN_AGENT`, fallback to `copilot|claude|openai|goose|manual`).
+   - `created_by.model`: from `AIMAN_MODEL` or renderer metadata if available; else empty string.
+   - `created_by.version`: script/agent version if known; else empty string.
+   - `generated_with.tool`: the invoking tool name (e.g., `aiman-cli`, script filename).
+   - `generated_with.command`: sanitized command summary (no secrets), e.g., `new --type story --title ...`.
+   - `generated_with.prompt_ref`: path/ID of the prompt used when rendering (central + agent addendum); empty when not applicable.
+   - `generated_with.prompt_hash`: SHA-256 of the fully rendered prompt after normalization.
+   - Merge (do not overwrite) arrays: `context_sources` and `derived_from` when flags `--context` / `--from` are provided.
+   - Always refresh `updated` (UTC date) on write.
+
+Normalization and hashing:
+
+- Normalize before hashing: trim trailing spaces, convert CRLF to LF, collapse multiple blank lines to single, and remove trailing newline at EOF.
+- macOS/BSD compatible hashing: prefer `shasum -a 256`; fallback to `openssl dgst -sha256 | awk '{print $2}'`.
+- Store the lowercase hex digest in `generated_with.prompt_hash`.
+
+CLI flags (override/controls):
+
+- `--agent <name>` / `--model <id>` / `--version <v>` / `--prompt-ref <path|id>` / `--context <id|url>[, ...]` / `--from <id|url>[, ...]`.
+- `--no-provenance` to skip injection (discouraged; logs a warning and is ignored in `--strict` mode).
+
+Success criteria:
+
+- New artifacts created via CLI contain `created_by` and `generated_with` fields.
+- Rendered prompts written to artifacts carry a stable `prompt_hash`.
+- Manual edits are preserved; automation only appends/merges without destructive changes.
+
+### Citations (structured) – enforcement
+
+Use a structured list in frontmatter for citations when stricter traceability is required (summaries, ADRs, reflections):
+
+- Required per item:
+   - `id`: internal artifact ID (preferred) or external URL.
+   - `locator`: section/paragraph/line selector (e.g., heading slug, anchor, line range).
+   - `quote`: minimal necessary excerpt only (no fulltexts).
+   - `quote_hash`: SHA-256 of a normalized `quote` (trim, normalize whitespace/newlines).
+- Recommended:
+   - `accessed`: ISO timestamp for web sources.
+   - `license`: if relevant.
+
+Enforcement:
+
+- For `type: summary`, `type: adr`, and `type: reflection`, require at least one `citations` entry (configurable minimum via central config).
+- Validator flags:
+   - Missing `locator` or `quote_hash` → warning (non-strict) or error (strict mode).
+   - External `id` URLs must be absolute and HTTPS.
+
+### Source integrity (content_hash)
+
+For `type: source`, include integrity metadata to support snapshots and verification:
+
+- Required fields in frontmatter:
+   - `url`: canonical source URL (if applicable).
+   - `retrieved_at`: ISO timestamp when accessed.
+   - `content_hash`: SHA-256 of the retrieved content (normalized text or binary as-is).
+   - `hash_algo`: `sha256` (default).
+   - `content_length`: byte length at retrieval time (if available).
+- Optional:
+   - `etag` / `last_modified` if provided by server headers.
+   - `snapshot_path`: relative path to an internal snapshot (only if license permits; otherwise omit content and keep hash-only).
+
+CLI behavior:
+
+- `new --type source --url <URL>` fetches headers/content (within allowlist), computes `content_hash`, and records retrieval metadata without storing full copyrighted text.
+- If content cannot be retrieved, allow manual provision of `content_hash` via `--content-hash` (validator will warn).
+
+Validator checks:
+
+- `content_hash` present and algorithm recognized.
+- If a snapshot exists, recompute and compare hash → mismatch is an error.
+- If only hash recorded, treat as integrity reference (no recomputation).
+
 ## Core requirements to implement
 
 1) Product foundations
@@ -183,6 +261,26 @@ Section-level structure when citing evidence (preferred in content, not frontmat
 - Tool contract validation: lint/validate input/output schemas; safety checks; generate minimal usage docs
 - MCP capability discovery/status: detect available capabilities, map to tool contracts, record limits (tokens/rate), and expose a read-only summary
 - Optional tool invocation adapters (stubs) with clear safety constraints (no destructive defaults)
+
+## Provenance validator (standalone)
+
+Purpose:
+
+- Provide a fast, deterministic PASS/FAIL verdict on provenance compliance across the repository.
+
+CLI usage (POSIX-compatible):
+
+- `scripts/validate-provenance.sh [--json] [--strict] [--paths <dir|file> ...]`
+
+Behavior:
+
+- Scans Markdown files with YAML frontmatter.
+- Validates required provenance fields by `type` (including `created_by`, `generated_with`, `citations`, and `content_hash` for `source`).
+- Verifies `generated_with.prompt_hash` is present when artifacts were created/updated by framework scripts (detect via `generated_with.tool`).
+- Emits a concise human-readable summary and optional JSON report to stdout.
+- Exit codes: 0 = PASS, 1 = FAIL.
+
+Output (JSON, when `--json`): see "Appendix: provenance validator result schema (JSON)".
 
 ## Templates to implement (content outline; do not fix names)
 
@@ -352,6 +450,7 @@ Provide a concise prompt template to be reused across tasks and agents. The temp
    - For the summary: verify `citations` present (at least one item)
 4) Prompt rendering:
    - Render a task prompt and confirm layout: central task → agent addendum → config/index excerpts
+   - Confirm provenance auto-injection: `created_by`, `generated_with.prompt_ref`, and `generated_with.prompt_hash`
 5) Reflection (ACE – Agentic Context Engineering):
    - Create a reflection with all ACE phases and a curator handover
 6) Export a prompt for one agent and check the exported artifact
@@ -363,7 +462,7 @@ Provide a concise prompt template to be reused across tasks and agents. The temp
    - Produce a meta-reflection report and at least one improvement backlog entry
 9) Provenance validator:
    - Run the provenance validator script
-   - Record PASS/FAIL and list of issues (if any)
+   - Record PASS/FAIL and list of issues (if any); ensure `--strict` yields no errors
 10) Document the dry run outcomes succinctly in the overview doc
 
 Record pass/fail and key notes for each step. Blockers should create clarification tasks rather than proceeding with assumptions.
