@@ -92,6 +92,17 @@ created_by:             # optional: captured automatically by scripts when possi
 generated_with:         # optional: captured automatically by scripts when possible
    tool: ""             # e.g., aiman-cli, script name
    command: ""          # short command summary (no secrets)
+   prompt_ref: ""       # optional: path/ID of the prompt used for generation
+   prompt_hash: ""      # optional: stable hash of the rendered prompt (e.g., sha256)
+
+# optional structured citations (recommended for summaries/ADRs/reflections)
+citations:
+   - id: ""             # internal artifact ID (preferred) or external URL
+      locator: ""        # section/paragraph/line selector (e.g., heading slug, anchor)
+      quote: ""          # short quote (minimal necessary excerpt)
+      quote_hash: ""     # optional hash of normalized quote text
+      accessed: ""       # ISO date when accessed (for web)
+      license: ""        # optional license note if relevant
 ```
 
 Section-level structure when citing evidence (preferred in content, not frontmatter):
@@ -163,6 +174,7 @@ Section-level structure when citing evidence (preferred in content, not frontmat
 - CLI entry point: expose commands (new, index, status, reflect, sync, prompt, prompt-install)
 - Provenance injection: when creating/updating via scripts/agents, capture and write `created_by` and `generated_with` and preserve/merge `context_sources`/`derived_from`
 - Provenance validation: check presence/shape of provenance fields per type and report issues
+- Provenance validator (standalone): scan repo, validate provenance contract (presence, shapes, citations structure), verify `content_hash` for sources, flag missing `prompt_hash` for auto-generated changes; output PASS/FAIL with a concise report
 - Repository-wide audit: run ACE-based checks across artifacts; summarize findings
 - Drift detection: compare central prompts to agent addenda and flag inconsistencies
 - Health checks: validate frontmatter/contracts, link integrity, config conformance
@@ -180,6 +192,8 @@ Section-level structure when citing evidence (preferred in content, not frontmat
 - ACE (Agentic Context Engineering) Reflection: role, session, context_sources, ACE phases, uncertainties, confidence, curator handover
 - Review: curator checks, decision (accepted/needs work), follow-ups
 - Source, Summary: knowledge ingestion with provenance and derived summary
+   - Source must include retrieval metadata and a SHA-256 content hash for integrity checks
+   - Summary/ADR/Reflection may include structured `citations` (see Provenance contract)
 - Skill, Tool, MCP capability: registry artifacts describing capabilities, schemas, safety, and (optional) MCP bindings
 - Meta-reflection / Retrospective: repository-wide reflection output with ACE phases and curator handover
 - Audit report & Improvement backlog entry: concise findings, decisions, and actions
@@ -299,14 +313,14 @@ Provide a concise prompt template to be reused across tasks and agents. The temp
 ## Skills, tools, and MCP capabilities
 
 - Define a compact skills registry mapped to roles (e.g., Generator, Reflector, Curator, Architect, PM, Engineer). For each skill, specify:
-   - Purpose, prerequisites, typical inputs/outputs, and failure modes
-   - When to apply (triggers) and when to defer (clarification policy)
+  - Purpose, prerequisites, typical inputs/outputs, and failure modes
+  - When to apply (triggers) and when to defer (clarification policy)
 - Define tool contracts (name, description, input schema, output schema, safety notes). Keep interfaces minimal and composable.
 - If the environment supports MCP (Model Context Protocol), provide capability descriptors for the most useful functions, for example:
-   - Knowledge access (read-only slices; domain allowlist for web fetch)
-   - Repository operations (safe reads; constrained writes within the project)
-   - VCS insights (status/diff) and search (code/text)
-   - Prompt rendering/export plumbing
+  - Knowledge access (read-only slices; domain allowlist for web fetch)
+  - Repository operations (safe reads; constrained writes within the project)
+  - VCS insights (status/diff) and search (code/text)
+  - Prompt rendering/export plumbing
 - Ensure tools/skills are reference-first (IDs/paths/URLs) and respect progressive disclosure and safety constraints.
 
 ## Context efficiency & progressive disclosure
@@ -334,6 +348,8 @@ Provide a concise prompt template to be reused across tasks and agents. The temp
 3) Knowledge ingestion:
    - Add one source (with metadata) and a derived summary (parent link, citations)
    - Verify provenance fields and linkage
+   - For the source: verify `content_hash` present and stable
+   - For the summary: verify `citations` present (at least one item)
 4) Prompt rendering:
    - Render a task prompt and confirm layout: central task → agent addendum → config/index excerpts
 5) Reflection (ACE – Agentic Context Engineering):
@@ -345,7 +361,10 @@ Provide a concise prompt template to be reused across tasks and agents. The temp
 8) Continuous self-improvement:
    - Run a repository-wide audit/reflection; verify drift detection and health checks
    - Produce a meta-reflection report and at least one improvement backlog entry
-9) Document the dry run outcomes succinctly in the overview doc
+9) Provenance validator:
+   - Run the provenance validator script
+   - Record PASS/FAIL and list of issues (if any)
+10) Document the dry run outcomes succinctly in the overview doc
 
 Record pass/fail and key notes for each step. Blockers should create clarification tasks rather than proceeding with assumptions.
 
@@ -356,6 +375,7 @@ Record pass/fail and key notes for each step. Blockers should create clarificati
 - Index/status update successfully and reflect artifacts
 - Prompts render with “central task” followed by “agent-specific addendum” and config/index excerpts
 - Knowledge ingestion creates correct links and provenance; no fulltext copied
+- Provenance validator returns PASS (or reports actionable issues resolved within the run)
 - ACE (Agentic Context Engineering) reflections template enforces phases and curator handover
 - Spec-as-source documented; provenance recorded across artifacts
 - Repository-wide audit/reflection runs, drift issues (if any) are reported or resolved, and an improvement backlog is produced
@@ -524,9 +544,9 @@ JSON (gleichwertig):
 
 - Format: `YYYYMMDD-HHMMSS-<slug>` oder `YYYYMMDD-HHMMSS-<rand>`
 - Eigenschaften:
-   - Zeitbasierte Präfixe für natürliche Ordnung
-   - Kleinbuchstaben, Ziffern, Bindestriche im Suffix (`[a-z0-9-]{3,}`)
-   - Eindeutigkeit: Timestamp + 3–6 zufällige Zeichen reichen in Praxis
+  - Zeitbasierte Präfixe für natürliche Ordnung
+  - Kleinbuchstaben, Ziffern, Bindestriche im Suffix (`[a-z0-9-]{3,}`)
+  - Eindeutigkeit: Timestamp + 3–6 zufällige Zeichen reichen in Praxis
 - Regex (vereinfachend):
 
 ```text
@@ -534,9 +554,9 @@ JSON (gleichwertig):
 ```
 
 - Generatorhinweise:
-   - Nutze Systemzeit (UTC) für `YYYYMMDD-HHMMSS`
-   - Füge 3–6 zufällige alphanumerische Zeichen an (lowercase)
-   - Keine Leerzeichen, keine Unterstriche
+  - Nutze Systemzeit (UTC) für `YYYYMMDD-HHMMSS`
+  - Füge 3–6 zufällige alphanumerische Zeichen an (lowercase)
+  - Keine Leerzeichen, keine Unterstriche
 
 ## Appendix: model/agent constraints matrix (JSON template)
 

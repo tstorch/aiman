@@ -23,14 +23,14 @@ Dieses Dokument wird automatisch von `scripts/update-status.sh` aktualisiert.
 ## Details nach Typ und Status
 
 <!-- AUTO-GENERATED: STATUS DETAILS START -->
-### Übersicht (Counts)
+### Übersicht (Details)
 
 | Typ | Anzahl |
 |---|---|
 | vision | 1 |
 | specification | 1 |
 
-### Nach Status je Typ
+### Nach Status je Typ (Details)
 
 | Typ/Status | Anzahl |
 |---|---|

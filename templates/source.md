@@ -10,15 +10,17 @@ tags: [knowledge, source, {{TAGS}}]
 created: {{DATE}}
 updated: {{DATE}}
 # Zusatzmetadaten
+ 
 url: "{{URL}}"
 source_type: "web"
 author: ""
 publisher: ""
 publication_date: ""
 retrieved: {{DATE}}
+content_hash: ""
 license: ""
 trust: medium
----
+
 
 ## Quelle
 

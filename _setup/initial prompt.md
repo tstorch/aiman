@@ -1,3 +1,5 @@
+# Initial Prompt
+
 You are an expert prompt engineer and project manager and know the quirks of LLMs.
 
 Create for me a set of prompts, scripts (bash) and templates (markdown files) to manage a product development via markdown files. When encountering external sources you scrape them and include them with an accompanying markdown document with metadata (such as scraping date, URL, ...) and a multi-level summary
@@ -12,12 +14,12 @@ Create for me a set of prompts, scripts (bash) and templates (markdown files) to
 - Clarification (regular and ad hoc, when not 100% clear); when specifics are not clear mark them as such and do not proceed with further steps until clarified
 - Working on artifacts such as implementation
 - Agile development: MVP plus incremental development, review
-- Reflection on each level (Epics, Features, Storys, Tasks; milestones) based on Agentic Context Engineering ( see https://arxiv.org/html/2510.04618v1 ) utilizing the roles Generator/Reflector/Curator
+- Reflection on each level (Epics, Features, Storys, Tasks; milestones) based on Agentic Context Engineering (see <https://arxiv.org/html/2510.04618v1>) utilizing the roles Generator/Reflector/Curator
 - Documentation (change and current state of development)
 - Development documents (processes, conventions, best practices, knowledge sources, ...)
 - The Repo basically works in its entirety as a knowledge graph with a central point of entry
 - automatic knowledge scraping (e.g. websites) and integration into the knowledge graph structure
-- spec as source ( see https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html )
+- spec as source (see <https://martinfowler.com/articles/exploring-gen-ai/sdd-3-tools.html>)
 - complete provenance for all artefacts in the repo
 - specific prompts for popular AI agents such as Copilot in VS Code, Codex, Claude Code, Goose and others in a properly matching folder structure each and setup scripts to initialize this framework for use for the selected ai agent; include agent specific information and constraints in the specifc prompts to leverage each to its maximum; include a prompt and script to update this information
 - include model detection and injection of model-specific information and constraints in the prompts to leverage each model to its maximum; include a prompt and script to update this information
