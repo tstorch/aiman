@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+SCRIPTS="$DIR/../scripts"
+
+cmd="${1:-}"; shift || true
+case "$cmd" in
+  new) bash "$SCRIPTS/new-entity.sh" "$@";;
+  index) bash "$SCRIPTS/update-index.sh";;
+  status) bash "$SCRIPTS/update-status.sh";;
+  reflect) bash "$SCRIPTS/reflect.sh" "$@";;
+  sync) bash "$SCRIPTS/sync.sh";;
+  *)
+    cat <<EOF
+Aiman CLI
+Usage: bin/aiman <command> [args]
+Commands:
+  new <type> "<title>" [options]  # neues Artefakt
+  index                            # Index/Graph aktualisieren
+  status                           # Status aktualisieren
+  reflect <path-or-id>             # ACE-Reflexion anlegen
+  sync                             # Index + Status aktualisieren
+EOF
+    ;;
+ esac
