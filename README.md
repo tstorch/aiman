@@ -23,6 +23,30 @@ Hinweis: Falls du die Skripte als ausführbar nutzen willst, setze einmalig die 
 chmod +x scripts/*.sh bin/aiman
 ```
 
+## Quick Reference (ohne feste Pfade)
+
+Die wichtigsten Kommandos über den CLI-Wrapper (sofern in deinem PATH verfügbar):
+
+```sh
+aiman new <type> "<title>" [--tags tag1,tag2]
+aiman index
+aiman status
+aiman reflect <artifact_path_or_id>
+aiman sync
+aiman prompt --agent <agent> --task <task> [--context <path1,path2>]
+aiman prompt-install --agent <agent> --task <task>
+```
+
+Kurzbeschreibung:
+
+- new: erzeugt ein Artefakt aus Templates (z. B. epic/feature/story/task/adr/source/summary)
+- index: aktualisiert Knowledge Graph und Übersichten
+- status: aggregiert Kennzahlen (Counts je Typ/Status)
+- reflect: erstellt eine ACE-Reflexion (Agentic Context Engineering) zu einem Artefakt
+- sync: führt index + status aus
+- prompt: rendert einen zentralen Task-Prompt mit Agent-Addendum
+- prompt-install: exportiert einen Prompt für einen Agenten (Option: Zwischenablage auf macOS)
+
 ## Struktur
 
 - `docs/index.md` – zentraler Einstieg, automatisch gepflegte Übersichten

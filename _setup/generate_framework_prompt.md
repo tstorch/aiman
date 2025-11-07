@@ -370,6 +370,38 @@ Minimal shape for a single skill entry; adapt fields as needed.
 }
 ```
 
+## Appendix: compact tool contract schema (JSON)
+
+Minimales, kopierbares JSON für ein Tool-Contract; Felder bei Bedarf anpassen.
+
+```json
+{
+   "id": "TOOL-YYYYMMDD-HHMMSS-xyz",
+   "category": "tool",
+   "name": "update-index",
+   "description": "Scannt die Wissensbasis und aktualisiert Graph/Übersichten.",
+   "input_schema": {
+      "type": "object",
+      "properties": {
+         "paths": { "type": "array", "items": { "type": "string" } },
+         "dry_run": { "type": "boolean" }
+      },
+      "required": []
+   },
+   "output_schema": {
+      "type": "object",
+      "properties": {
+         "updated_files": { "type": "array", "items": { "type": "string" } },
+         "warnings": { "type": "array", "items": { "type": "string" } }
+      },
+      "required": ["updated_files"]
+   },
+   "mcp_capability": "repo.index.update",
+   "safety_notes": ["nur lesende Scans außerhalb des Projekts", "keine destruktiven Defaults"],
+   "updated": "2025-11-07"
+}
+```
+
 ## Final notes
 
 - Keep all content concise and structured to maximize token efficiency
