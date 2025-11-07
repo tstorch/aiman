@@ -13,6 +13,8 @@ updated: {{DATE}}
 source_url: "{{URL}}"
 provenance: "manual/agent"
 confidence: medium
+derived_from: ["{{PARENT}}"]
+context_sources: ["{{URL}}"]
 ---
 
 ## TL;DR (1–2 Sätze)

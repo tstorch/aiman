@@ -57,6 +57,7 @@ Kurzbeschreibung:
 - `docs/architecture/adr` – Architecture Decision Records
 - `docs/reflections` – ACE-Reflexionen (Agentic Context Engineering)
 - `templates` – Markdown-Vorlagen (YAML Frontmatter)
+  - `templates/change_log_entry.md` – Vorlage für menschenlesbare Änderungslog-Einträge (Datum/Impact/Kategorien)
 - `prompts` – LLM-Prompts mit Guardrails
 - `scripts` – Bash-Skripte (Erzeugen, Index, Status, Reflexion, Sync)
 - `bin/aiman` – kleiner CLI-Wrapper

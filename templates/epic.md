@@ -9,6 +9,8 @@ milestone: "{{MILESTONE}}"
 tags: [{{TAGS}}]
 created: {{DATE}}
 updated: {{DATE}}
+context_sources: []
+derived_from: []
 ---
 
 ## Beschreibung

@@ -75,6 +75,30 @@ updated: 2025-11-07
 - Recommended: tags, parent, milestone
 - Keep `updated` accurate; link via IDs/relative paths.
 
+## Provenance contract (minimum viable)
+
+All created or updated artifacts must record provenance to ensure traceability and auditability.
+
+Frontmatter fields (fill where applicable; keep minimal but consistent):
+
+```yaml
+# provenance fields (conditional by type)
+context_sources: []     # IDs or URLs consulted during creation/update
+derived_from: []        # IDs or URLs the artifact is directly derived from
+created_by:             # optional: captured automatically by scripts when possible
+   agent: ""            # e.g., copilot/claude/openai/goose/manual
+   model: ""            # model identifier if known
+   version: ""          # agent or tool version
+generated_with:         # optional: captured automatically by scripts when possible
+   tool: ""             # e.g., aiman-cli, script name
+   command: ""          # short command summary (no secrets)
+```
+
+Section-level structure when citing evidence (preferred in content, not frontmatter):
+
+- A dedicated "Evidenz & Zitate" block with short quotes and precise citations (ID/URL + section/selector)
+- Do not paste fulltexts; use minimal quotes and exact references
+
 ## Core requirements to implement
 
 1) Product foundations
@@ -137,6 +161,8 @@ updated: 2025-11-07
 - Prompt rendering: compose (guardrails + central task + agent addendum + config/index excerpts + optional context)
 - Prompt installer: export rendered prompt to an agent-specific export location and to clipboard on macOS (optional)
 - CLI entry point: expose commands (new, index, status, reflect, sync, prompt, prompt-install)
+- Provenance injection: when creating/updating via scripts/agents, capture and write `created_by` and `generated_with` and preserve/merge `context_sources`/`derived_from`
+- Provenance validation: check presence/shape of provenance fields per type and report issues
 - Repository-wide audit: run ACE-based checks across artifacts; summarize findings
 - Drift detection: compare central prompts to agent addenda and flag inconsistencies
 - Health checks: validate frontmatter/contracts, link integrity, config conformance
@@ -463,6 +489,7 @@ types:
    - review
    - source
    - summary
+   - changelog
 
 statuses:
    - draft
@@ -484,12 +511,12 @@ JSON (gleichwertig):
 
 ```json
 {
-   "types": ["epic", "feature", "story", "task", "adr", "reflection", "review", "source", "summary"],
-   "statuses": ["draft", "proposed", "in-progress", "review", "accepted", "done", "deprecated"],
-   "rules": {
-      "frontmatter_required": ["id", "type", "title", "status"],
-      "link_policy": { "use_relative_paths": true, "id_reference_required": true }
-   }
+  "types": ["epic", "feature", "story", "task", "adr", "reflection", "review", "source", "summary", "changelog"],
+  "statuses": ["draft", "proposed", "in-progress", "review", "accepted", "done", "deprecated"],
+  "rules": {
+    "frontmatter_required": ["id", "type", "title", "status"],
+    "link_policy": { "use_relative_paths": true, "id_reference_required": true }
+  }
 }
 ```
 
