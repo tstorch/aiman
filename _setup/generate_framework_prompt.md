@@ -32,6 +32,7 @@ Design and generate a complete, self-maintaining Markdown-first framework for pr
 - Link artifacts via IDs and relative paths (knowledge graph). No absolute paths.
 - Copyright: do not copy full external texts; use minimal quotes with precise citations.
 - Progressive disclosure: small, testable steps; avoid long outputs; prefer references and summaries.
+- Shell portability: scripts must be POSIX/BSD-compatible on macOS (zsh/sh). Avoid bash-only features (process substitution, arrays) and GNU-only flags; prefer portable awk/sed; use `shasum -a 256` for hashing with `openssl` fallback.
 
 ## Required components (no fixed names or paths)
 
@@ -76,6 +77,7 @@ updated: 2025-11-07
 - Mandatory: id, type, title, status
 - Recommended: tags, parent, milestone
 - Keep `updated` accurate; link via IDs/relative paths.
+- Strict mode: `created` is required and non-empty; dates use UTC `YYYY-MM-DD`. `updated` must advance on each write by automation.
 
 ## Provenance contract (minimum viable)
 
@@ -184,6 +186,10 @@ CLI behavior:
 - `new --type source --url <URL>` fetches headers/content (within allowlist), computes `content_hash`, and records retrieval metadata without storing full copyrighted text.
 - If content cannot be retrieved, allow manual provision of `content_hash` via `--content-hash` (validator will warn).
 
+Normalization before hashing (sources):
+
+- For text responses, normalize like prompt hashing: trim trailing spaces, convert CRLF to LF, collapse multiple blank lines to single, and remove trailing newline at EOF; then compute SHA-256 over the normalized bytes. For binaries, hash raw bytes as-is.
+
 Validator checks:
 
 - `content_hash` present and algorithm recognized.
@@ -251,12 +257,12 @@ Validator checks:
 - Sync: run index + status updates
 - Prompt rendering: compose (guardrails + central task + agent addendum + model addendum + config/index excerpts + optional context)
 - Prompt installer: export rendered prompt to an agent-specific export location and to clipboard on macOS (optional)
-- CLI entry point: expose commands (new, index, status, reflect, sync, prompt, prompt-install)
+- CLI entry point: expose commands (new, index, status, reflect, sync, prompt, prompt-install, explorer)
 - Provenance injection: when creating/updating via scripts/agents, capture and write `created_by` and `generated_with` and preserve/merge `context_sources`/`derived_from`
 - Provenance validation: check presence/shape of provenance fields per type and report issues
 - Provenance validator (standalone): scan repo, validate provenance contract (presence, shapes, citations structure), verify `content_hash` for sources, flag missing `prompt_hash` for auto-generated changes; output PASS/FAIL with a concise report
 - Repository-wide audit: run ACE-based checks across artifacts; summarize findings
-- Drift detection: compare central prompts to agent addenda and flag inconsistencies
+- Drift detection: compare central prompts to agent addenda and flag inconsistencies; normalize lines, ignore blank-only lines, and de-duplicate before comparison to reduce false positives.
 - Health checks: validate frontmatter/contracts, link integrity, config conformance
 - Improvement backlog generator: convert audit/reflection findings into actionable items
 - Skills registry management: add/list/update/remove skills; filter by role/task; produce compact injection payloads
@@ -288,6 +294,7 @@ Features (must-have):
 
 - Universal search bar: tokenizes input; matches across id, type, title, status, tags, milestone, owner, created/updated, and path; debounce; highlight matches.
 - Filters: type, status, tags (multi-select), milestone, owner, date ranges; combine with search (AND semantics).
+      - Facet semantics: within a multi-select facet (e.g., tags), apply OR; across different facets and the search query, apply AND. Restore URL state on load and keep query params updated for deep-linking.
 - Views:
       - List view: sortable (title, updated, status, type), group by type/status; keyboard navigation; deep-linkable URLs (query params reflect search/filter/state).
       - Graph view: force or radial layout (no external libs); pan/zoom; select node to center; show neighbors; click-through to artifact; toggle edge types; search/filter reflect in the graph.
@@ -873,3 +880,58 @@ Vorlage zur Dokumentation agent-/modell-spezifischer Constraints (Platzhalter au
 - Keep all content concise and structured to maximize token efficiency
 - Prefer IDs and relative paths throughout
 - If uncertain, create a clarification task and pause further steps
+
+## Operational notes (optional)
+
+### Failure recovery (optional)
+
+Provenance & integrity remediation flow:
+
+1. Run `scripts/validate-provenance.sh --strict --json`.
+2. For each finding apply targeted fix:
+    - missing `created`: add UTC `YYYY-MM-DD`; increment `updated`.
+    - missing `citations` (summary/adr/reflection): insert ≥1 item (`id`, `locator`, `quote`, `quote_hash`).
+    - missing `content_hash` (source): normalize text, compute sha256, set `content_length`, `hash_algo`.
+    - missing `prompt_hash`: re-render prompt to regenerate.
+3. Hash mismatch (snapshot): re-normalize & recompute; if persists, flag integrity risk → create clarification artifact before continuing.
+4. Drift failures: `scripts/drift.sh`; remove duplicate lines (ignore blanks), prefer central prompt; re-render.
+5. Stale index/status: `scripts/sync.sh`.
+6. YAML/frontmatter errors: ensure leading `---` fence, valid key names, quotes only when needed; never delete existing provenance blocks—extend instead.
+
+Escalation policy:
+
+- If the same artifact triggers identical strict errors twice, create a reflection + clarification task before further automation.
+- For repeated drift (≥3 consecutive audits), propose consolidation of prompts or stricter addendum linting.
+- For systemic missing `created`, enforce a pre-commit hook (future enhancement suggestion).
+
+### Performance envelope (optional)
+
+Baseline:
+
+- Responsive for <300 artifacts with full scan per sync.
+- Acceptable for ~1k artifacts using debounced search, O(n) list filter, lightweight graph layout.
+
+Scaling strategies:
+
+1. Inverted index mode: enable alternative `index.json` shape (token→IDs) after ~300–400 artifacts for faster search.
+2. Incremental sync: track modified paths (e.g., via git diff) to rebuild only affected rows instead of full scan.
+3. Graph layout throttling: fewer iterations; skip physics for hidden nodes (filtered out).
+4. Caching frontmatter: simple key-value cache keyed by file mtime to avoid re-parsing unchanged artifacts.
+5. Optional precompiled TSV: generate a flat TSV for CLI grep-based operations in large repos.
+
+Client rendering optimizations:
+
+- Use `requestAnimationFrame` for graph ticks; batch DOM writes.
+- Avoid layout thrash (set container dimensions once; use transforms for pan/zoom).
+- Defer heavy computations (hashing large prompts) to create/update scripts—not at explorer runtime.
+
+Portability & predictability:
+
+- Stick to POSIX/BSD tools; no GNU-only flags, ensuring similar performance across macOS/Linux.
+- Hashing: prefer `shasum -a 256`; fallback `openssl dgst -sha256` when unavailable.
+
+Future enhancement backlog (non-blocking):
+
+- Pre-warmed search index build step.
+- Optional WebAssembly layout engine (only if graph > 2k nodes).
+- Adaptive level-of-detail: collapse sibling nodes in large clusters.

@@ -23,3 +23,26 @@ Turn specs into shipped outcomes with agent-ready prompts, strict provenance, an
 - Be auditable by design: hashes, citations, and validators make decisions traceable.
 - Discover without dependencies: a single-file explorer surfaces context, links, and impact without a build.
 - Work with agents safely: prompts, addenda, and constraints unlock effective AI collaboration.
+
+## Git Hooks (optional)
+
+This repository can enforce strict provenance before commits:
+
+- Pre-commit hook path: `.githooks/pre-commit` (installed via `git config core.hooksPath .githooks`).
+- Runs `scripts/validate-provenance.sh --strict` and blocks if any required fields or citations are missing.
+- Bypass (not recommended): set `ALLOW_BROKEN_PROVENANCE=1` in the commit environment.
+
+To (re)install manually:
+
+```sh
+chmod +x .githooks/pre-commit
+git config core.hooksPath .githooks
+```
+
+Remove or disable by resetting hooksPath:
+
+```sh
+git config --unset core.hooksPath
+```
+
+Keep commits green by remediating failures using the Failure recovery flow in the bootstrap prompt.

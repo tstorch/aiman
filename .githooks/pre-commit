@@ -1,0 +1,20 @@
+#!/bin/sh
+# Git pre-commit hook: run strict provenance validation before committing
+# Set ALLOW_BROKEN_PROVENANCE=1 to bypass (not recommended)
+set -eu
+ROOT=$(cd "$(dirname "$0")/.."; pwd)
+if [ "${ALLOW_BROKEN_PROVENANCE:-0}" = "1" ]; then
+  echo "[pre-commit] WARNING: provenance checks bypassed via ALLOW_BROKEN_PROVENANCE=1" >&2
+  exit 0
+fi
+if [ ! -x "$ROOT/scripts/validate-provenance.sh" ]; then
+  echo "[pre-commit] ERROR: scripts/validate-provenance.sh not found or not executable" >&2
+  exit 1
+fi
+# Run strict validation across repo; keep it fast and deterministic
+if ! "$ROOT/scripts/validate-provenance.sh" --strict; then
+  echo
+  echo "[pre-commit] FAIL: Strict provenance validation failed. Fix issues above or set ALLOW_BROKEN_PROVENANCE=1 to bypass (not recommended)." >&2
+  exit 1
+fi
+exit 0

@@ -8,8 +8,11 @@ updated: 2025-11-08
 
 Counts:
 
-- artifacts: 1
+- artifacts: 6
 
 Per Type:
 
-- epic: 1\n
+- summary: 1
+- source: 2
+- epic: 1
+- reflection: 2

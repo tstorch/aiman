@@ -27,6 +27,9 @@ OUT="artifacts/${TYPE}/${ID}.md"
 mkdir -p "artifacts/${TYPE}"
 TEMPLATE="templates/${TYPE}.md"
 if [ -f "$TEMPLATE" ]; then cp "$TEMPLATE" "$OUT"; else echo "---\nid: $ID\ntype: $TYPE\ntitle: $TITLE\nstatus: draft\ncreated: $(date -u +%Y-%m-%d)\nupdated: $(date -u +%Y-%m-%d)\n---\n\n" > "$OUT"; fi
+# ensure created present (templates may omit)
+if ! grep -q '^created:' "$OUT"; then fm_set_field "$OUT" created "$(date -u +%Y-%m-%d)"; fi
+fm_set_field "$OUT" updated "$(date -u +%Y-%m-%d)"
 # replace placeholders
 sed -i '' "s/<ID>/$ID/" "$OUT" 2>/dev/null || sed -i "" "s/<ID>/$ID/" "$OUT" 2>/dev/null || true
 sed -i '' "s/<TITLE>/$TITLE/" "$OUT" 2>/dev/null || sed -i "" "s/<TITLE>/$TITLE/" "$OUT" 2>/dev/null || true

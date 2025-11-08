@@ -19,7 +19,7 @@ done
 
 types_total=$(awk '{print $1}' "$counts_tmp" | wc -l | tr -d ' ')
 # build summary per type
-summary=$(awk '{c[$1]++} END{for(k in c){printf "- %s: %d\\n", k, c[k]}}' "$counts_tmp")
+summary=$(awk '{c[$1]++} END{for(k in c){printf "- %s: %d\n", k, c[k]}}' "$counts_tmp")
 
 {
   cat <<HDR

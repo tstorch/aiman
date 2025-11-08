@@ -28,16 +28,16 @@ find "$scan_dir" -type f -name '*.md' -not -path '*/_setup/*' -not -path '*/docs
   owner=$(fm_get_field "$f" owner || true)
   created=$(fm_get_field "$f" created || true)
   updated=$(fm_get_field "$f" updated || true)
-  relpath=$(python - <<PY 2>/dev/null || node -e "" 2>/dev/null || echo "$f" <<'PY'
-import os,sys
-root=os.path.abspath("$ROOT")
-f=os.path.abspath("$f")
-print(os.path.relpath(f, root))
-PY
-)
+  case "$f" in
+    "$ROOT"/*) relpath=${f#"$ROOT/"} ;;
+    *) relpath="$f" ;;
+  esac
   [ -n "$id" ] || continue
-  printf '{"id":"%s","type":"%s","title":%s,"status":"%s","path":"%s","parent":"%s","tags":%s,"milestone":%s,"owner":%s,"created":%s,"updated":%s}\n' \
-    "$id" "$type" "\"${title}\"" "$status" "$relpath" "${parent}" "${tags:-[]}" "${milestone:+\"$milestone\"}" "${owner:+\"$owner\"}" "${created:+\"$created\"}" "${updated:+\"$updated\"}" >> "$nodes_tmp"
+  esc() { printf %s "$1" | sed 's/\\/\\\\/g; s/\"/\\\"/g'; }
+  titleq=$(esc "$title"); ownerq=$(esc "$owner"); milestoneq=$(esc "$milestone"); parentq=$(esc "$parent"); createdq=$(esc "$created"); updatedq=$(esc "$updated"); pathq=$(esc "$relpath")
+  [ -n "$tags" ] || tags="[]"
+  printf '{"id":"%s","type":"%s","title":"%s","status":"%s","path":"%s","parent":"%s","tags":%s,"milestone":"%s","owner":"%s","created":"%s","updated":"%s"}\n' \
+    "$id" "$type" "$titleq" "$status" "$pathq" "$parentq" "$tags" "$milestoneq" "$ownerq" "$createdq" "$updatedq" >> "$nodes_tmp"
   printf '%s\t%s\t%s\t%s\t%s\n' "$id" "$type" "$title" "$status" "$relpath" >> "$rows_tmp"
   if [ -n "$parent" ]; then
     printf '{"source":"%s","target":"%s","rel":"parent"}\n' "$parent" "$id" >> "$edges_tmp"

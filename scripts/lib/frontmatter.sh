@@ -8,7 +8,7 @@ fm_extract() { awk 'BEGIN{infm=0} /^---/{c++; if(c==2){exit} else {infm=1; next}
 fm_has_field() { fm_extract "$1" | awk -v k="$2" -F': *' '$1==k {print; exit}'; }
 
 fm_get_field() { # $1=file $2=key
-  fm_extract "$1" | awk -v k="$2" -F': *' '$1==k {sub(/^ +/,"",$2); print $2; exit}';
+  fm_extract "$1" | awk -v k="$2" -F': *' '($1==k){v=$2; sub(/^ +/,"",v); if(v ~ /^".*"$/){v=substr(v,2,length(v)-2)}; print v; exit}'
 }
 
 # Upsert a top-level scalar key inside frontmatter (before second ---)

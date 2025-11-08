@@ -38,6 +38,8 @@ footer { position:fixed; bottom:6px; left:8px; color:var(--muted); font-size:12p
     <input id="q" type="text" placeholder="Search (id, type, title, status, tags, milestone, owner, path)" />
     <label>Type <select id="fltType"><option value="">(any)</option></select></label>
     <label>Status <select id="fltStatus"><option value="">(any)</option></select></label>
+    <label>Milestone <select id="fltMilestone"><option value="">(any)</option></select></label>
+    <label>Tags <select id="fltTag"><option value="">(any)</option></select></label>
     <span class="state" id="state">Loading…</span>
   </div>
 </header>
@@ -60,7 +62,7 @@ footer { position:fixed; bottom:6px; left:8px; color:var(--muted); font-size:12p
 const config = { base_url: "", graph_path: "_graph/graph.json", index_path: "_graph/index.json" };
 const S = {
   data: { graph: { nodes:[], edges:[] }, index:[] },
-  filt: { q:"", type:"", status:"" },
+  filt: { q:"", type:"", status:"", milestone:"", tag:"" },
   filtered: [],
   canvas: null, ctx: null, w:0, h:0, nodes:[], edges:[], scale:1, panX:0, panY:0,
 };
@@ -81,11 +83,17 @@ async function loadData(){
 }
 
 function hydrateFilters(){
-  const types = [...new Set(S.data.graph.nodes.map(n=>n.type).filter(Boolean))].sort();
-  const statuses = [...new Set(S.data.graph.nodes.map(n=>n.status).filter(Boolean))].sort();
-  for(const t of types){ const o=document.createElement('option'); o.value=t; o.textContent=t; $('fltType').appendChild(o) }
-  for(const s of statuses){ const o=document.createElement('option'); o.value=s; o.textContent=s; $('fltStatus').appendChild(o) }
+  const types = uniq(S.data.graph.nodes.map(n=>n.type));
+  const statuses = uniq(S.data.graph.nodes.map(n=>n.status));
+  const milestones = uniq(S.data.graph.nodes.map(n=>n.milestone));
+  const tags = uniq(S.data.graph.nodes.flatMap(n=> n.tags||[]));
+  fillSelect('fltType', types);
+  fillSelect('fltStatus', statuses);
+  fillSelect('fltMilestone', milestones);
+  fillSelect('fltTag', tags);
 }
+function uniq(arr){ return [...new Set(arr.filter(x=>x && x!==""))].sort(); }
+function fillSelect(id, values){ const sel=$(id); values.forEach(v=>{ const o=document.createElement('option'); o.value=v; o.textContent=v; sel.appendChild(o); }); }
 
 function tokenize(s){ return (s||'').toLowerCase().split(/\s+/).filter(Boolean) }
 
@@ -94,6 +102,8 @@ function applyFilters(){
   const match = (n)=>{
     if(S.filt.type && n.type!==S.filt.type) return false;
     if(S.filt.status && n.status!==S.filt.status) return false;
+    if(S.filt.milestone && n.milestone!==S.filt.milestone) return false;
+    if(S.filt.tag && !(n.tags||[]).includes(S.filt.tag)) return false;
     if(terms.length===0) return true;
     const hay = [n.id, n.type, n.title, n.status, (n.tags||[]).join(' '), n.milestone, n.owner, n.path].join(' ').toLowerCase();
     return terms.every(t=>hay.includes(t));
@@ -101,6 +111,7 @@ function applyFilters(){
   S.filtered = S.data.graph.nodes.filter(match);
   renderList(S.filtered);
   layoutGraph(S.filtered);
+  updateUrlState();
 }
 
 function highlight(text, terms){
@@ -175,6 +186,21 @@ function colorForType(t){
 $('q').addEventListener('input', e=>{ S.filt.q=e.target.value; applyFilters() });
 $('fltType').addEventListener('change', e=>{ S.filt.type=e.target.value; applyFilters() });
 $('fltStatus').addEventListener('change', e=>{ S.filt.status=e.target.value; applyFilters() });
+$('fltMilestone').addEventListener('change', e=>{ S.filt.milestone=e.target.value; applyFilters() });
+$('fltTag').addEventListener('change', e=>{ S.filt.tag=e.target.value; applyFilters() });
+restoreUrlState();
+
+function updateUrlState(){
+  const params=new URLSearchParams();
+  for(const k of ['q','type','status','milestone','tag']){ if(S.filt[k]) params.set(k,S.filt[k]); }
+  const qs=params.toString();
+  if(history.replaceState){ history.replaceState(null,'', qs?('?'+qs):location.pathname); }
+}
+function restoreUrlState(){
+  const sp=new URLSearchParams(location.search);
+  ['q','type','status','milestone','tag'].forEach(k=>{ const v=sp.get(k); if(v){ S.filt[k]=v; const el=$(k==='q'? 'q':'flt'+capitalize(k)); if(el) el.value=v; }});
+}
+function capitalize(s){ return s.charAt(0).toUpperCase()+s.slice(1); }
 
 loadData();
 </script>
