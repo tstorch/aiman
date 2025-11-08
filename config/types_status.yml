@@ -1,0 +1,28 @@
+types:
+  - vision
+  - specification
+  - epic
+  - feature
+  - story
+  - task
+  - adr
+  - reflection
+  - review
+  - source
+  - summary
+  - skill
+  - tool
+  - capability
+statuses:
+  - draft
+  - proposed
+  - in-progress
+  - review
+  - accepted
+  - done
+  - deprecated
+rules:
+  frontmatter_required: [id, type, title, status]
+  link_policy:
+    use_relative_paths: true
+    id_reference_required: true

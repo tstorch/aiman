@@ -1,0 +1,182 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Artifact Explorer</title>
+<style>
+:root { --bg:#0b0f14; --fg:#e8eef5; --muted:#9bb4cc; --accent:#4ea1ff; --card:#121822; }
+* { box-sizing: border-box }
+body { margin:0; font:14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial; background:var(--bg); color:var(--fg); }
+header { padding:12px 16px; background:var(--card); position:sticky; top:0; z-index:10; border-bottom:1px solid #222a33 }
+header h1 { margin:0 0 8px 0; font-size:16px; color:var(--muted) }
+.controls { display:flex; gap:8px; flex-wrap:wrap; align-items:center }
+.controls input[type=text], select { padding:8px; border:1px solid #2a3340; background:#0e141d; color:var(--fg); border-radius:6px }
+.controls .state { margin-left:auto; color:var(--muted) }
+main { display:grid; grid-template-columns: 1fr 1fr; gap:0; height: calc(100vh - 82px) }
+section { border-right:1px solid #222a33; overflow:auto }
+section:last-child { border-right:none }
+#list { padding:8px 12px }
+.table { width:100%; border-collapse:collapse }
+.table th, .table td { padding:6px 8px; border-bottom:1px solid #1b2230 }
+.table th { position:sticky; top:0; background:#0f1622; text-align:left }
+.badge { display:inline-block; padding:2px 6px; border-radius:4px; background:#1e2636; color:var(--muted); font-size:12px }
+.path { color:var(--muted); font-size:12px }
+#graphPane { position:relative }
+#canvas { width:100%; height:100% }
+.toolbar { position:absolute; top:8px; right:8px; background:#0f1622; border:1px solid #1b2230; border-radius:6px; padding:6px; display:flex; gap:6px }
+button { padding:6px 8px; background:#112033; color:var(--fg); border:1px solid #1b2230; border-radius:6px; cursor:pointer }
+button:disabled { opacity:.6; cursor:not-allowed }
+mark { background: rgba(255,255,0,.2); color:inherit }
+footer { position:fixed; bottom:6px; left:8px; color:var(--muted); font-size:12px }
+</style>
+</head>
+<body>
+<header>
+  <h1>Artifact Explorer</h1>
+  <div class="controls">
+    <input id="q" type="text" placeholder="Search (id, type, title, status, tags, milestone, owner, path)" />
+    <label>Type <select id="fltType"><option value="">(any)</option></select></label>
+    <label>Status <select id="fltStatus"><option value="">(any)</option></select></label>
+    <span class="state" id="state">Loading…</span>
+  </div>
+</header>
+<main>
+  <section id="list">
+    <table class="table" id="tbl">
+      <thead><tr><th>Title</th><th>Type</th><th>Status</th><th>Updated</th><th>Path</th></tr></thead>
+      <tbody></tbody>
+    </table>
+  </section>
+  <section id="graphPane">
+    <canvas id="canvas"></canvas>
+    <div class="toolbar">
+      <button id="resetView">Reset view</button>
+    </div>
+  </section>
+</main>
+<footer>file:// compatible • no dependencies</footer>
+<script>
+const config = { base_url: "", graph_path: "_graph/graph.json", index_path: "_graph/index.json" };
+const S = {
+  data: { graph: { nodes:[], edges:[] }, index:[] },
+  filt: { q:"", type:"", status:"" },
+  filtered: [],
+  canvas: null, ctx: null, w:0, h:0, nodes:[], edges:[], scale:1, panX:0, panY:0,
+};
+
+function $(id){ return document.getElementById(id) }
+
+async function loadData(){
+  const base = location.href.replace(/\/[^/]*$/, '/');
+  const [g,i] = await Promise.all([
+    fetch(config.graph_path).then(r=>r.json()).catch(()=>({nodes:[],edges:[]})),
+    fetch(config.index_path).then(r=>r.json()).catch(()=>[])
+  ]);
+  S.data.graph = g; S.data.index = Array.isArray(i)? i : [];
+  $('state').textContent = `${g.nodes.length} nodes, ${g.edges.length} edges`;
+  hydrateFilters();
+  applyFilters();
+  initCanvas();
+}
+
+function hydrateFilters(){
+  const types = [...new Set(S.data.graph.nodes.map(n=>n.type).filter(Boolean))].sort();
+  const statuses = [...new Set(S.data.graph.nodes.map(n=>n.status).filter(Boolean))].sort();
+  for(const t of types){ const o=document.createElement('option'); o.value=t; o.textContent=t; $('fltType').appendChild(o) }
+  for(const s of statuses){ const o=document.createElement('option'); o.value=s; o.textContent=s; $('fltStatus').appendChild(o) }
+}
+
+function tokenize(s){ return (s||'').toLowerCase().split(/\s+/).filter(Boolean) }
+
+function applyFilters(){
+  const terms = tokenize(S.filt.q);
+  const match = (n)=>{
+    if(S.filt.type && n.type!==S.filt.type) return false;
+    if(S.filt.status && n.status!==S.filt.status) return false;
+    if(terms.length===0) return true;
+    const hay = [n.id, n.type, n.title, n.status, (n.tags||[]).join(' '), n.milestone, n.owner, n.path].join(' ').toLowerCase();
+    return terms.every(t=>hay.includes(t));
+  };
+  S.filtered = S.data.graph.nodes.filter(match);
+  renderList(S.filtered);
+  layoutGraph(S.filtered);
+}
+
+function highlight(text, terms){
+  let s=text+''; for(const t of terms){ s=s.replace(new RegExp(`(${t})`,'ig'), '<mark>$1</mark>'); } return s;
+}
+
+function renderList(rows){
+  const tb = $('tbl').querySelector('tbody'); tb.innerHTML='';
+  const terms = tokenize(S.filt.q);
+  rows.sort((a,b)=> (a.title||'').localeCompare(b.title||''));
+  for(const n of rows){
+    const tr=document.createElement('tr');
+    tr.innerHTML = `<td>${highlight(escapeHtml(n.title||n.id), terms)}<div class=path>${escapeHtml(n.id)}</div></td>
+      <td><span class=badge>${escapeHtml(n.type||'')}</span></td>
+      <td><span class=badge>${escapeHtml(n.status||'')}</span></td>
+      <td>${escapeHtml(n.updated||'')}</td>
+      <td class=path>${escapeHtml(n.path||'')}</td>`;
+    tb.appendChild(tr);
+  }
+}
+
+function escapeHtml(s){ return (s||'').replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c])) }
+
+function initCanvas(){
+  S.canvas=$('canvas'); S.ctx=S.canvas.getContext('2d');
+  const resize=()=>{ S.w=S.canvas.width=S.canvas.clientWidth; S.h=S.canvas.height=S.canvas.clientHeight; draw() };
+  window.addEventListener('resize', resize); resize();
+  let dragging=false, last={x:0,y:0};
+  S.canvas.addEventListener('mousedown', e=>{ dragging=true; last=screenToWorld(e.offsetX,e.offsetY) });
+  window.addEventListener('mouseup', ()=> dragging=false);
+  S.canvas.addEventListener('mousemove', e=>{
+    if(!dragging) return; const cur=screenToWorld(e.offsetX,e.offsetY); S.panX += (cur.x-last.x); S.panY += (cur.y-last.y); draw();
+  });
+  S.canvas.addEventListener('wheel', e=>{ e.preventDefault(); const f=Math.exp(-e.deltaY*0.001); S.scale*=f; draw() }, {passive:false});
+  $('resetView').onclick=()=>{ S.scale=1; S.panX=0; S.panY=0; draw() };
+}
+
+function layoutGraph(nodes){
+  // Build neighbor edges subset
+  const ids = new Set(nodes.map(n=>n.id));
+  const edges = S.data.graph.edges.filter(e=> ids.has(e.source) && ids.has(e.target));
+  // Simple radial layout
+  const R = Math.min(S.w,S.h)*0.35; const cx=0, cy=0; const n=nodes.length||1;
+  nodes.forEach((node,i)=>{ node._x = cx + R*Math.cos(2*Math.PI*i/n); node._y = cy + R*Math.sin(2*Math.PI*i/n) });
+  S.nodes = nodes; S.edges = edges; draw();
+}
+
+function worldToScreen(x,y){ return { x: (x+S.panX)*S.scale + S.w/2, y: (y+S.panY)*S.scale + S.h/2 } }
+function screenToWorld(x,y){ return { x: (x - S.w/2)/S.scale - S.panX, y: (y - S.h/2)/S.scale - S.panY } }
+
+function draw(){
+  const ctx=S.ctx; ctx.setTransform(1,0,0,1,0,0); ctx.clearRect(0,0,S.w,S.h);
+  ctx.translate(S.w/2, S.h/2); ctx.scale(S.scale, S.scale); ctx.translate(S.panX, S.panY);
+  // edges
+  ctx.strokeStyle='#2b3a4d'; ctx.lineWidth=1/Math.max(1,S.scale);
+  for(const e of S.edges){ const a=S.nodes.find(n=>n.id===e.source); const b=S.nodes.find(n=>n.id===e.target); if(!a||!b) continue; ctx.beginPath(); ctx.moveTo(a._x,a._y); ctx.lineTo(b._x,b._y); ctx.stroke(); }
+  // nodes
+  for(const n of S.nodes){
+    ctx.fillStyle = colorForType(n.type);
+    ctx.beginPath(); ctx.arc(n._x, n._y, 6/Math.max(1,S.scale), 0, Math.PI*2); ctx.fill();
+  }
+  // labels
+  ctx.fillStyle = '#c8d6e5'; ctx.font = `${12/Math.max(1,S.scale)}px system-ui`;
+  for(const n of S.nodes){ ctx.fillText((n.title||n.id).slice(0,24), n._x+8/Math.max(1,S.scale), n._y-8/Math.max(1,S.scale)); }
+}
+
+function colorForType(t){
+  const map={ epic:'#ffb86c', feature:'#8be9fd', story:'#50fa7b', task:'#bd93f9', adr:'#f1fa8c', reflection:'#ff79c6', summary:'#ff5555', source:'#6272a4' };
+  return map[t]||'#4ea1ff';
+}
+
+$('q').addEventListener('input', e=>{ S.filt.q=e.target.value; applyFilters() });
+$('fltType').addEventListener('change', e=>{ S.filt.type=e.target.value; applyFilters() });
+$('fltStatus').addEventListener('change', e=>{ S.filt.status=e.target.value; applyFilters() });
+
+loadData();
+</script>
+</body>
+</html>
